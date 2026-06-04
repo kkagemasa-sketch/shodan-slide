@@ -250,6 +250,7 @@
     <button class="tool" id="undoBtn">↶ 戻る</button>
     <button class="tool" id="redoBtn">進む ↷</button>
     <button class="tool" id="clearBtn">全消去</button>
+    <button class="tool sel" id="penOnlyBtn" title="オンにすると指タッチでは書けません（ペン専用）">🖊 ペンのみ</button>
   </div>
 
   <button class="btn" id="presBtn">🗒 発表者</button>
@@ -878,7 +879,7 @@ window.addEventListener('resize',()=>{ if(slides[page]&&slides[page].querySelect
 
 /* ====== 手書き（ペン／マーカー／消しゴム・ページ別保存） ====== */
 const canvas=$('penLayer'), pctx=canvas.getContext('2d');
-let penOn=false, drawing=false, tool='pen', penColor='#e02424', penSize=4;
+let penOn=false, drawing=false, tool='pen', penColor='#e02424', penSize=4, penOnlyMode=true;
 let strokesByPage=slides.map(()=>[]); let redoByPage=slides.map(()=>[]); let current=null;
 function resizeCanvas(){ const dpr=window.devicePixelRatio||1; const w=canvas.clientWidth,h=canvas.clientHeight;
   canvas.width=w*dpr; canvas.height=h*dpr; pctx.setTransform(dpr,0,0,dpr,0,0); redraw(); }
@@ -895,7 +896,9 @@ function drawStroke(st){ if(st.pts.length<1)return;
   pctx.stroke(); pctx.globalAlpha=1; pctx.globalCompositeOperation='source-over';
 }
 const posOf=e=>{const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
-canvas.addEventListener('pointerdown',e=>{ if(!penOn)return; drawing=true; canvas.setPointerCapture(e.pointerId);
+canvas.addEventListener('pointerdown',e=>{ if(!penOn)return;
+  if(penOnlyMode && e.pointerType==='touch')return;   // ペンのみモード：指タッチは無視（Apple Pencil/ペン/マウスのみ）
+  drawing=true; canvas.setPointerCapture(e.pointerId);
   redoByPage[page]=[];   // 新しく書いたら「進む」履歴はリセット
   current={tool,color:penColor,size:penSize,pts:[posOf(e)]}; strokesByPage[page].push(current); redraw(); });
 canvas.addEventListener('pointermove',e=>{ if(!penOn||!drawing)return; current.pts.push(posOf(e)); redraw(); });
@@ -906,6 +909,8 @@ $('penBtn').onclick=()=>{ penOn=!penOn; canvas.classList.toggle('active',penOn);
 $('undoBtn').onclick=()=>{ if(strokesByPage[page].length){ redoByPage[page].push(strokesByPage[page].pop()); redraw(); } };
 $('redoBtn').onclick=()=>{ if(redoByPage[page].length){ strokesByPage[page].push(redoByPage[page].pop()); redraw(); } };
 $('clearBtn').onclick=()=>{ strokesByPage[page]=[]; redoByPage[page]=[]; redraw(); };
+$('penOnlyBtn').onclick=()=>{ penOnlyMode=!penOnlyMode; $('penOnlyBtn').classList.toggle('sel',penOnlyMode);
+  $('penOnlyBtn').textContent=penOnlyMode?'🖊 ペンのみ':'🖊 指もOK'; };
 document.querySelectorAll('.tool[data-tool]').forEach(b=>b.onclick=()=>{ tool=b.dataset.tool;
   document.querySelectorAll('.tool[data-tool]').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); });
 document.querySelectorAll('.swatch').forEach(s=>s.onclick=()=>{ penColor=s.dataset.color;
