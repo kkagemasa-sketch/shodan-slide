@@ -289,7 +289,9 @@
         <div class="row">
           <div class="field"><label>お客様名</label>
             <div class="unit-input"><input id="custName" placeholder="例：山田 太郎"><span class="unit">様</span></div></div>
-          <div class="field"><label>日付</label><input id="meetDate" type="date"></div>
+          <div class="field"><label>日付</label>
+            <div id="meetDateView" style="font-size:clamp(18px,2.3vw,23px);font-weight:700;padding:11px 13px;border:2px solid var(--line);border-radius:11px;background:#fff;color:var(--ink);">2026年6月4日</div>
+            <input id="meetDate" type="date" style="margin-top:6px;width:100%;font-size:13.5px;font-weight:600;padding:7px 10px;border:1px solid var(--line);border-radius:9px;color:var(--muted);font-family:inherit;background:#fff;"></div>
         </div>
       </div>
     </div>
@@ -825,7 +827,13 @@ function calcStep5(){
 
 /* ====== 表紙 ====== */
 $('custName').addEventListener('input',()=>{ const v=$('custName').value.trim(); $('coverTitleView').textContent=v?(v+'様への'):'あなたに合った'; });
-(function(){$('meetDate').value='2026-06-03';})();
+(function(){
+  function fmtJDate(v){ if(!v)return''; const p=v.split('-'); return (+p[0])+'年'+(+p[1])+'月'+(+p[2])+'日'; }
+  const t=new Date();
+  const v=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+  $('meetDate').value=v; $('meetDateView').textContent=fmtJDate(v);
+  $('meetDate').addEventListener('input',()=>{ $('meetDateView').textContent=fmtJDate($('meetDate').value); });
+})();
 
 /* ====== 数字のカウントアップ演出 ====== */
 function setNum(id,val,dec){ const el=$(id); el.dataset.val=val; el.dataset.dec=dec||0; el.textContent=(dec?fmt1(val):fmt(val)); }
