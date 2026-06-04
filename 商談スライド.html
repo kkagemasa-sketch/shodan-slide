@@ -42,6 +42,8 @@
   .navgroup{display:inline-flex;align-items:center;gap:4px;}
   .navgroup .lab{font-size:11px;font-weight:800;color:var(--muted);margin-right:2px;}
   .navgroup .btn{padding:9px 11px;}
+  /* ボタンのダブルタップ拡大を無効化（iPad対策）*/
+  button,.btn,.navarrow,.tool,.swatch,.size,.pageind,#toolbar{touch-action:manipulation;}
 
   /* 手書きツール（コンパクト）*/
   .pen-tools{display:none;gap:4px;align-items:center;padding-right:5px;border-right:1px solid var(--line);margin-right:2px;}
@@ -966,6 +968,14 @@ $('pvPrev').onclick=back; $('pvNextBtn').onclick=advance;
 /* ====== 初期計算 ====== */
 calcTypes(); calcKoujo(); calcStep5();
 showPage(0);
+
+/* ====== iPad：ダブルタップ拡大を無効化（touch-actionの補強） ====== */
+let _lastTap=0;
+document.addEventListener('touchend',function(e){
+  const now=Date.now();
+  if(now-_lastTap<=350){ e.preventDefault(); }   // 350ms以内の2回目タップ＝ダブルタップ→拡大を止める
+  _lastTap=now;
+},{passive:false});
 </script>
 </body>
 </html>
