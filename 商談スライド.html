@@ -932,6 +932,11 @@ function endStroke(e){ if(e&&e.pointerId!==undefined&&e.pointerId!==drawId)retur
   drawId=null; drawing=false; current=null; redraw(); }
 canvas.addEventListener('pointerup',endStroke); canvas.addEventListener('pointercancel',endStroke);
 canvas.addEventListener('lostpointercapture',e=>{ if(e.pointerId===drawId){ drawId=null; drawing=false; current=null; } });  // 今描いている線のポインタの時だけリセット（前の線の遅延発火で次の線を巻き込まない）
+// iOS：手書き中はキャンバスのタッチ既定動作（ダブルタップ拡大とその判定遅延・スクロール・コールアウト）を全て無効化。
+// → 0.5秒以内の連続ストロークが「ダブルタップ」と誤認されて2本目が飲み込まれる問題を防ぐ。描画はpointerイベントで継続。
+['touchstart','touchmove','touchend'].forEach(function(t){
+  canvas.addEventListener(t,function(e){ if(penOn)e.preventDefault(); },{passive:false});
+});
 $('penBtn').onclick=()=>{ penOn=!penOn; canvas.classList.toggle('active',penOn); $('penTools').classList.toggle('show',penOn);
   document.body.classList.toggle('penmode',penOn);
   $('penBtn').classList.toggle('on',penOn); $('penBtn').textContent=penOn?'✏️ 書き込み中':'✏️ 手書き'; if(penOn)resizeCanvas(); };
