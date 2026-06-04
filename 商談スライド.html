@@ -199,7 +199,10 @@
   .checkline input{width:18px;height:18px;}
 
   /* 手書きキャンバス */
-  #penLayer{position:absolute;top:56px;left:0;width:100vw;height:calc(100vh - 56px);z-index:30;touch-action:none;display:none;cursor:crosshair;}
+  #penLayer{position:absolute;top:56px;left:0;width:100vw;height:calc(100vh - 56px);z-index:30;touch-action:none;display:none;cursor:crosshair;
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
+  /* 手書き中はスライド全体の文字選択を禁止（縦線で全選択になるのを防ぐ）*/
+  body.penmode, body.penmode *{-webkit-user-select:none !important;user-select:none !important;-webkit-touch-callout:none !important;}
   #penLayer.active{display:block;}
   #penHint{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:35;
     background:rgba(27,39,51,.9);color:#fff;font-size:12.5px;padding:7px 15px;border-radius:20px;display:none;}
@@ -908,13 +911,16 @@ function drawStroke(st){ if(st.pts.length<1)return;
 const posOf=e=>{const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
 canvas.addEventListener('pointerdown',e=>{ if(!penOn)return;
   if(penOnlyMode && e.pointerType==='touch')return;   // ペンのみモード：指タッチは無視（Apple Pencil/ペン/マウスのみ）
+  e.preventDefault();                                  // iOSの文字選択・拡大などを抑止
   drawing=true; canvas.setPointerCapture(e.pointerId);
   redoByPage[page]=[];   // 新しく書いたら「進む」履歴はリセット
   current={tool,color:penColor,size:penSize,pts:[posOf(e)]}; strokesByPage[page].push(current); redraw(); });
-canvas.addEventListener('pointermove',e=>{ if(!penOn||!drawing)return; current.pts.push(posOf(e)); redraw(); });
+canvas.addEventListener('pointermove',e=>{ if(!penOn||!drawing)return; e.preventDefault(); current.pts.push(posOf(e)); redraw(); });
+canvas.addEventListener('selectstart',e=>e.preventDefault());   // 文字選択の開始を禁止
 function endStroke(){drawing=false;current=null;}
 canvas.addEventListener('pointerup',endStroke); canvas.addEventListener('pointercancel',endStroke);
 $('penBtn').onclick=()=>{ penOn=!penOn; canvas.classList.toggle('active',penOn); $('penTools').classList.toggle('show',penOn);
+  document.body.classList.toggle('penmode',penOn);
   $('penBtn').classList.toggle('on',penOn); $('penBtn').textContent=penOn?'✏️ 書き込み中':'✏️ 手書き'; if(penOn)resizeCanvas(); };
 $('undoBtn').onclick=()=>{ if(strokesByPage[page].length){ redoByPage[page].push(strokesByPage[page].pop()); redraw(); } };
 $('redoBtn').onclick=()=>{ if(redoByPage[page].length){ strokesByPage[page].push(redoByPage[page].pop()); redraw(); } };
@@ -972,6 +978,8 @@ showPage(0);
 /* ====== iPad：ダブルタップ拡大を無効化（touch-actionの補強） ====== */
 let _lastTap=0;
 document.addEventListener('touchend',function(e){
+  // 手書き中・キャンバス・入力欄は対象外（ペン操作を邪魔しない）
+  if(penOn || (e.target && (e.target.id==='penLayer' || (e.target.closest && e.target.closest('input,textarea,select')))))return;
   const now=Date.now();
   if(now-_lastTap<=350){ e.preventDefault(); }   // 350ms以内の2回目タップ＝ダブルタップ→拡大を止める
   _lastTap=now;
