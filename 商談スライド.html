@@ -295,8 +295,9 @@
           <div class="field"><label>お客様名</label>
             <div class="unit-input"><input id="custName" placeholder="例：山田 太郎"><span class="unit">様</span></div></div>
           <div class="field"><label>日付</label>
-            <div id="meetDateView" style="font-size:clamp(18px,2.3vw,23px);font-weight:700;padding:11px 13px;border:2px solid var(--line);border-radius:11px;background:#fff;color:var(--ink);">2026年6月4日</div>
-            <input id="meetDate" type="date" style="margin-top:6px;width:100%;font-size:13.5px;font-weight:600;padding:7px 10px;border:1px solid var(--line);border-radius:9px;color:var(--muted);font-family:inherit;background:#fff;"></div>
+            <div style="position:relative;">
+              <div id="meetDateView" style="font-size:clamp(18px,2.3vw,23px);font-weight:700;padding:11px 13px;border:2px solid var(--line);border-radius:11px;background:#fff;color:var(--ink);cursor:pointer;">2026年6月4日</div>
+              <input id="meetDate" type="date" title="タップで日付を変更" style="position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;opacity:0;cursor:pointer;"></div></div>
         </div>
       </div>
     </div>
@@ -909,21 +910,28 @@ function drawStroke(st){ if(st.pts.length<1)return;
   pctx.stroke(); pctx.globalAlpha=1; pctx.globalCompositeOperation='source-over';
 }
 const posOf=e=>{const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
+let drawId=null;            // 今描いているポインタのID（これ以外＝手のひら等は無視）
+let redrawScheduled=false;  // 描画をフレーム単位にまとめる（速書きでも軽い）
+function scheduleRedraw(){ if(redrawScheduled)return; redrawScheduled=true; requestAnimationFrame(()=>{ redrawScheduled=false; redraw(); }); }
 canvas.addEventListener('pointerdown',e=>{ if(!penOn)return;
-  if(penOnlyMode && e.pointerType==='touch')return;   // ペンのみモード：指タッチは無視（Apple Pencil/ペン/マウスのみ）
+  if(penOnlyMode && e.pointerType==='touch')return;   // ペンのみモード：指/手のひらは無視
+  if(drawId!==null)return;                             // すでに別ポインタで描画中（手のひら等）は無視
   e.preventDefault();                                  // iOSの文字選択・拡大などを抑止
-  drawing=true; canvas.setPointerCapture(e.pointerId);
+  drawId=e.pointerId; drawing=true;
+  try{canvas.setPointerCapture(e.pointerId);}catch(_){}
   redoByPage[page]=[];   // 新しく書いたら「進む」履歴はリセット
-  current={tool,color:penColor,size:penSize,pts:[posOf(e)]}; strokesByPage[page].push(current); redraw(); });
-canvas.addEventListener('pointermove',e=>{ if(!penOn||!drawing)return; e.preventDefault();
+  current={tool,color:penColor,size:penSize,pts:[posOf(e)]}; strokesByPage[page].push(current); scheduleRedraw(); });
+canvas.addEventListener('pointermove',e=>{ if(!penOn||drawId===null||e.pointerId!==drawId)return; e.preventDefault();
   const evs=(e.getCoalescedEvents?e.getCoalescedEvents():null);   // 速書きで間引かれた途中の点も全部拾う
   if(evs&&evs.length){ for(const ev of evs) current.pts.push(posOf(ev)); }
   else current.pts.push(posOf(e));
-  redraw(); });
+  scheduleRedraw(); });
 canvas.addEventListener('selectstart',e=>e.preventDefault());   // 文字選択の開始を禁止
-function endStroke(e){ if(drawing&&current&&e&&e.type==='pointerup'){ current.pts.push(posOf(e)); redraw(); }  // 離した位置も線に加える（速書きで点だけにならない）
-  drawing=false; current=null; }
+function endStroke(e){ if(e&&e.pointerId!==undefined&&e.pointerId!==drawId)return;   // 描画中ポインタ以外（手のひら等）は無視
+  if(drawing&&current&&e&&e.type==='pointerup'){ current.pts.push(posOf(e)); }       // 離した位置も線に加える（速書きで点だけにならない）
+  drawId=null; drawing=false; current=null; redraw(); }
 canvas.addEventListener('pointerup',endStroke); canvas.addEventListener('pointercancel',endStroke);
+canvas.addEventListener('lostpointercapture',()=>{ if(drawId!==null){ drawId=null; drawing=false; current=null; } });
 $('penBtn').onclick=()=>{ penOn=!penOn; canvas.classList.toggle('active',penOn); $('penTools').classList.toggle('show',penOn);
   document.body.classList.toggle('penmode',penOn);
   $('penBtn').classList.toggle('on',penOn); $('penBtn').textContent=penOn?'✏️ 書き込み中':'✏️ 手書き'; if(penOn)resizeCanvas(); };
