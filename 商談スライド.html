@@ -915,9 +915,14 @@ canvas.addEventListener('pointerdown',e=>{ if(!penOn)return;
   drawing=true; canvas.setPointerCapture(e.pointerId);
   redoByPage[page]=[];   // 新しく書いたら「進む」履歴はリセット
   current={tool,color:penColor,size:penSize,pts:[posOf(e)]}; strokesByPage[page].push(current); redraw(); });
-canvas.addEventListener('pointermove',e=>{ if(!penOn||!drawing)return; e.preventDefault(); current.pts.push(posOf(e)); redraw(); });
+canvas.addEventListener('pointermove',e=>{ if(!penOn||!drawing)return; e.preventDefault();
+  const evs=(e.getCoalescedEvents?e.getCoalescedEvents():null);   // 速書きで間引かれた途中の点も全部拾う
+  if(evs&&evs.length){ for(const ev of evs) current.pts.push(posOf(ev)); }
+  else current.pts.push(posOf(e));
+  redraw(); });
 canvas.addEventListener('selectstart',e=>e.preventDefault());   // 文字選択の開始を禁止
-function endStroke(){drawing=false;current=null;}
+function endStroke(e){ if(drawing&&current&&e&&e.type==='pointerup'){ current.pts.push(posOf(e)); redraw(); }  // 離した位置も線に加える（速書きで点だけにならない）
+  drawing=false; current=null; }
 canvas.addEventListener('pointerup',endStroke); canvas.addEventListener('pointercancel',endStroke);
 $('penBtn').onclick=()=>{ penOn=!penOn; canvas.classList.toggle('active',penOn); $('penTools').classList.toggle('show',penOn);
   document.body.classList.toggle('penmode',penOn);
