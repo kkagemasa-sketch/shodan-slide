@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Housing FP ｜ 住宅ローン商談スライド</title>
+<style>
+  :root{
+    --blue:#2f53c8; --blue-d:#21408f;
+    --teal:#16b9b1; --teal-d:#0f9c95;
+    --ink:#1b2733; --muted:#5d6b7a;
+    --line:#e4e9f0; --bg:#eef2f8; --card:#ffffff;
+    --warn:#e8772e; --good:#159a5b;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;margin:0;}
+  body{
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
+    color:var(--ink);background:var(--bg);overflow:hidden;
+  }
+
+  /* ===== ツールバー ===== */
+  #toolbar{
+    position:fixed;top:0;left:0;right:0;height:56px;z-index:40;
+    display:flex;align-items:center;gap:8px;padding:0 14px;
+    background:#fff;border-bottom:1px solid var(--line);box-shadow:0 1px 8px rgba(20,40,80,.06);
+    overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;
+  }
+  #toolbar::-webkit-scrollbar{height:4px;}
+  #toolbar::-webkit-scrollbar-thumb{background:#cbd5e2;border-radius:2px;}
+  #toolbar > *{flex-shrink:0;}
+  #toolbar .brand{display:flex;align-items:center;gap:9px;margin-right:auto;}
+  #toolbar .brand img{height:50px;width:auto;}
+  #toolbar .brand b{font-size:15px;color:var(--blue-d);font-weight:800;letter-spacing:.01em;}
+  .btn{border:1px solid var(--line);background:#fff;color:var(--ink);
+    font-size:14px;font-weight:700;border-radius:10px;padding:9px 13px;cursor:pointer;
+    user-select:none;white-space:nowrap;transition:transform .05s;}
+  .btn:active{transform:translateY(1px);}
+  .btn.primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .btn.on{background:#fff1e6;border-color:var(--warn);color:#b4520f;}
+  .pageind{font-size:13px;color:var(--muted);min-width:46px;text-align:center;font-weight:700;}
+  .navgroup{display:inline-flex;align-items:center;gap:4px;}
+  .navgroup .lab{font-size:11px;font-weight:800;color:var(--muted);margin-right:2px;}
+  .navgroup .btn{padding:9px 11px;}
+  /* ボタンのダブルタップ拡大を無効化（iPad対策）*/
+  button,.btn,.navarrow,.tool,.swatch,.size,.pageind,#toolbar{touch-action:manipulation;}
+
+  /* 手書きツール（コンパクト）*/
+  .pen-tools{display:none;gap:4px;align-items:center;padding-right:5px;border-right:1px solid var(--line);margin-right:2px;}
+  .pen-tools.show{display:flex;}
+  .tool{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 8px;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted);white-space:nowrap;}
+  .tool.sel{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .swatch{width:22px;height:22px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer;}
+  .swatch.sel{box-shadow:0 0 0 2px var(--blue);transform:scale(1.12);}
+  .sizes{display:flex;gap:3px;align-items:center;}
+  .size{width:28px;height:28px;border:1px solid var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;}
+  .size.sel{border-color:var(--blue);background:#eef3ff;}
+  .size .dot{background:var(--ink);border-radius:50%;}
+
+  /* ===== スライド ===== */
+  #stage{position:absolute;top:56px;left:0;right:0;bottom:0;overflow:hidden;}
+  .slide{position:absolute;inset:0;display:none;padding:30px clamp(18px,4.5vw,72px);overflow:auto;}
+  .slide.active{display:block;}
+  /* クリックで1項目ずつ表示（パワポ風）*/
+  .reveal{opacity:0;transform:translateY(16px);transition:opacity .4s ease, transform .4s ease;}
+  .reveal.shown{opacity:1;transform:none;}
+  .slide.nostep .reveal{opacity:1;transform:none;}
+  .slide-inner{max-width:1040px;margin:0 auto;}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--blue);font-weight:800;font-size:13px;letter-spacing:.08em;margin-bottom:8px;}
+  .eyebrow::before{content:"";width:22px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--blue),var(--teal));}
+  h1.slide-title{font-size:clamp(23px,3.2vw,38px);margin:0 0 6px;line-height:1.2;}
+  .subtitle{color:var(--muted);font-size:clamp(13px,1.7vw,17px);margin:0 0 22px;}
+
+  /* 入力 */
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:13.5px;font-weight:700;color:var(--muted);margin-bottom:5px;}
+  .field input,.field select{width:100%;font-size:clamp(16px,2vw,21px);padding:11px 13px;border:2px solid var(--line);
+    border-radius:11px;background:#fff;color:var(--ink);font-family:inherit;font-weight:700;}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--blue);}
+  .row{display:flex;gap:14px;flex-wrap:wrap;}
+  .row .field{flex:1;min-width:140px;}
+  .unit-input{position:relative;}
+  .unit-input .unit{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px;font-weight:700;pointer-events:none;}
+  .unit-input input{padding-right:44px;}
+
+  /* カード */
+  .result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin:6px 0 20px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;}
+  .card .k{font-size:13.5px;color:var(--muted);font-weight:700;margin-bottom:7px;}
+  .card .v{font-size:clamp(24px,3.6vw,38px);font-weight:800;line-height:1;}
+  .card .v small{font-size:.5em;font-weight:700;color:var(--muted);margin-left:3px;}
+  .card .kbreak{font-size:12.5px;color:var(--muted);font-weight:700;margin-top:9px;line-height:1.6;border-top:1px dashed var(--line);padding-top:8px;}
+  .card .kbreak b{color:var(--blue-d);font-weight:800;}
+  .card .kbreak .cap{display:block;color:#9aa6b2;font-weight:600;font-size:11.5px;margin-top:2px;}
+  .ktable{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:14px;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+  .ktable th,.ktable td{padding:6px 12px;text-align:right;border-bottom:1px solid var(--line);}
+  .ktable th:first-child,.ktable td:first-child{text-align:center;color:var(--muted);}
+  .ktable thead th{background:#eef3ff;color:var(--blue-d);font-weight:800;font-size:12px;text-align:right;}
+  .ktable thead th:first-child{text-align:center;}
+  .ktable tbody tr.cap-on td:nth-child(4){color:var(--blue-d);font-weight:800;}
+  .ktable tbody tr.prepay-row{background:#fff4e9;}
+  .ktable tbody tr.prepay-row td:first-child{color:var(--warn);font-weight:800;}
+  .ktable thead th{line-height:1.25;}
+  .ktable tfoot td{font-weight:800;background:#f7faff;color:var(--ink);border-bottom:none;text-align:right;}
+  .ktable tfoot td:first-child{text-align:right;}
+  /* STEP5 返済の内訳（縦並び）*/
+  .paylist{max-width:500px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;margin-top:14px;}
+  .paylist .pl-row{display:flex;justify-content:space-between;align-items:baseline;padding:11px 18px;border-bottom:1px solid var(--line);}
+  .paylist .pl-row:last-child{border-bottom:none;}
+  .paylist .pl-k{font-size:14px;font-weight:700;color:var(--muted);}
+  .paylist .pl-v{font-size:22px;font-weight:800;color:var(--ink);}
+  .paylist .pl-v small{font-size:12px;color:var(--muted);font-weight:700;margin-left:2px;}
+  .paylist .pl-row.total{background:#eef3ff;}
+  .paylist .pl-row.total .pl-v{color:var(--blue-d);}
+  /* 1年ごとの表（ドロップダウン）*/
+  .kdetails{margin-top:14px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;}
+  .kdetails>summary{cursor:pointer;padding:12px 16px;font-weight:800;font-size:13.5px;color:var(--blue-d);background:#eef3ff;list-style:none;user-select:none;display:flex;align-items:center;gap:8px;}
+  .kdetails>summary::-webkit-details-marker{display:none;}
+  .kdetails>summary::before{content:"▶";font-size:10px;color:var(--blue);transition:transform .2s;}
+  .kdetails[open]>summary::before{transform:rotate(90deg);}
+  .kdetails .ktable{margin:0;border:0;border-radius:0;}
+  .card.hero{background:linear-gradient(135deg,var(--blue),var(--blue-d));border:none;}
+  .card.hero .k{color:#cdd9ff;} .card.hero .v{color:#fff;} .card.hero .v small{color:#cdd9ff;}
+  .card.teal{background:linear-gradient(135deg,var(--teal),var(--teal-d));border:none;}
+  .card.teal .k{color:#d5fbf7;} .card.teal .v{color:#fff;} .card.teal .v small{color:#d5fbf7;}
+
+  /* 横バー */
+  .bar-wrap{margin-top:4px;}
+  .barlabel{display:flex;justify-content:space-between;font-size:13.5px;color:var(--muted);margin-bottom:7px;font-weight:700;}
+  .bar{display:flex;height:40px;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#fff;}
+  .bar .seg{display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13.5px;white-space:nowrap;transition:width .6s cubic-bezier(.4,0,.2,1);}
+  .bar .principal{background:var(--blue);} .bar .interest{background:var(--teal);}
+  .legend{display:flex;gap:18px;margin-top:9px;font-size:13px;color:var(--muted);flex-wrap:wrap;}
+  .legend .dot{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:middle;}
+
+  /* 比較テーブル/種類カード */
+  /* 3つの金利タイプ：横書きカードを縦に並べる */
+  .type-grid{display:flex;flex-direction:column;gap:12px;}
+  .type{display:flex;align-items:stretch;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;}
+  .type .head{display:flex;align-items:center;color:#fff;font-weight:800;font-size:15px;line-height:1.3;padding:14px 18px;width:170px;flex-shrink:0;}
+  .type.var .head{background:linear-gradient(135deg,var(--teal),var(--teal-d));}
+  .type.flat .head{background:linear-gradient(135deg,#6b7fd8,#4256b0);}
+  .type.fix .head{background:linear-gradient(135deg,var(--blue),var(--blue-d));}
+  .type .body{display:flex;align-items:center;gap:22px;flex:1;padding:12px 20px;flex-wrap:wrap;}
+  .type .paybox{display:flex;flex-direction:column;line-height:1.15;min-width:135px;flex-shrink:0;}
+  .type .paybox .pl{font-size:11px;color:var(--muted);font-weight:700;margin-bottom:1px;}
+  .type .paybox .pv{font-size:22px;font-weight:800;}
+  .type .paybox .pv small{font-size:12px;color:var(--muted);font-weight:700;margin-left:1px;}
+  .type ul{margin:0;padding-left:18px;font-size:12.5px;color:var(--muted);line-height:1.6;flex:1;min-width:200px;}
+  .type .rate-in{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+  .type .rate-in input{width:92px;font-size:18px;font-weight:800;padding:7px 8px;border:2px solid var(--line);border-radius:8px;text-align:right;}
+  .type .rate-in span{font-size:13px;color:var(--muted);font-weight:700;}
+  @media (max-width:680px){ .type{flex-direction:column;} .type .head{width:auto;} }
+
+  /* 解説ボックス */
+  .note{background:#fff;border:1px solid var(--line);border-left:5px solid var(--teal);border-radius:12px;padding:14px 18px;margin:14px 0;font-size:14.5px;line-height:1.75;color:#37434f;}
+  .note b{color:var(--blue-d);}
+  .note.warn{border-left-color:var(--warn);}
+  .note.blue{border-left-color:var(--blue);}
+  .rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:13px;}
+  .rule{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;}
+  .rule .num{display:inline-flex;width:30px;height:30px;border-radius:50%;background:var(--blue);color:#fff;font-weight:800;align-items:center;justify-content:center;margin-bottom:9px;font-size:15px;}
+  .rule h3{margin:0 0 6px;font-size:16px;}
+  .rule p{margin:0;font-size:13.5px;color:var(--muted);line-height:1.7;}
+
+  /* 実行金利の図 */
+  .rate-flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0;}
+  .rate-flow .box{background:#fff;border:2px solid var(--line);border-radius:12px;padding:12px 16px;text-align:center;min-width:120px;}
+  .rate-flow .box .lab{font-size:12.5px;color:var(--muted);font-weight:700;}
+  .rate-flow .box .val{font-size:22px;font-weight:800;margin-top:3px;}
+  .rate-flow .op{font-size:24px;font-weight:800;color:var(--muted);}
+  .rate-flow .box.result{border-color:var(--teal);background:#effbfa;}
+  .rate-flow .box.result .val{color:var(--teal-d);}
+
+  /* チャート */
+  .chart-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;}
+  #rateChart{width:100%;display:block;}
+  .chart-frame{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#fff;}
+  .chart-frame iframe{width:100%;height:calc(100vh - 250px);min-height:400px;border:0;display:block;}
+  .chart-legend{display:flex;gap:18px;flex-wrap:wrap;margin:4px 4px 10px;font-size:13.5px;font-weight:700;}
+  .chart-legend .it{display:flex;align-items:center;gap:7px;color:var(--ink);}
+  .chart-legend .ln{width:20px;height:4px;border-radius:2px;}
+
+  /* 表紙 */
+  .cover{height:100%;display:flex;flex-direction:column;justify-content:center;position:relative;}
+  .cover .coverlogo{height:140px;width:auto;align-self:flex-start;margin-bottom:18px;}
+  .cover h1{font-size:clamp(28px,4.6vw,50px);line-height:1.25;margin:0 0 8px;}
+  .cover h1 .accent{background:linear-gradient(90deg,var(--blue),var(--teal));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .cover .lead{color:var(--muted);font-size:clamp(14px,1.9vw,18px);margin:0 0 26px;}
+  .cover .meta{max-width:560px;}
+  .cover .deco{position:absolute;right:-40px;bottom:-40px;width:340px;height:340px;border-radius:50%;
+    background:radial-gradient(circle at 30% 30%,rgba(22,185,177,.16),rgba(47,83,200,.10));filter:blur(6px);z-index:-1;}
+
+  small.disc{display:block;color:#92a0ad;font-size:12px;margin-top:10px;line-height:1.6;}
+  .pill{display:inline-block;background:#eef3ff;color:var(--blue-d);border-radius:20px;padding:3px 12px;font-size:12.5px;font-weight:800;margin-left:8px;}
+  .apply-tag{font-size:12px;font-weight:800;padding:2px 9px;border-radius:14px;margin-left:8px;}
+  .apply-tag.on{background:#e7f8ef;color:var(--good);} .apply-tag.off{background:#f0f2f5;color:#9aa6b2;}
+  .checkline{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:14px;font-weight:700;color:var(--ink);}
+  .checkline input{width:18px;height:18px;}
+
+  /* 手書きキャンバス */
+  #penLayer{position:absolute;top:56px;left:0;width:100vw;height:calc(100vh - 56px);z-index:30;touch-action:none;display:none;cursor:crosshair;
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
+  /* 手書き中はスライド全体の文字選択を禁止（縦線で全選択になるのを防ぐ）*/
+  body.penmode, body.penmode *{-webkit-user-select:none !important;user-select:none !important;-webkit-touch-callout:none !important;}
+  #penLayer.active{display:block;}
+  #penHint{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:35;
+    background:rgba(27,39,51,.9);color:#fff;font-size:12.5px;padding:7px 15px;border-radius:20px;display:none;}
+  #penLayer.active ~ #penHint{display:block;}
+
+  .navarrow{position:fixed;top:50%;transform:translateY(-50%);z-index:20;width:44px;height:44px;border-radius:50%;
+    border:1px solid var(--line);background:#fff;font-size:20px;color:var(--muted);cursor:pointer;box-shadow:0 2px 10px rgba(20,40,80,.1);
+    display:flex;align-items:center;justify-content:center;}
+  #navPrev{left:12px;} #navNext{right:12px;}
+  @media (max-width:720px){ .navarrow{display:none;} #toolbar .brand b{display:none;} }
+
+  /* 発表者ビュー（カンペ） */
+  #presenter{position:fixed;top:56px;right:0;bottom:0;width:340px;max-width:80vw;z-index:36;
+    background:#0f1b29;color:#e7eef6;transform:translateX(100%);transition:transform .28s ease;
+    display:flex;flex-direction:column;gap:12px;padding:16px;box-shadow:-6px 0 24px rgba(0,0,0,.25);}
+  #presenter.open{transform:none;}
+  #presenter h4{margin:0;font-size:11px;letter-spacing:.1em;color:#7fa6cf;font-weight:800;}
+  #presenter .pv-now{font-size:17px;font-weight:800;line-height:1.4;}
+  #presenter .pv-next{background:#16263a;border-radius:10px;padding:10px 12px;font-size:13.5px;line-height:1.5;}
+  #presenter .pv-next b{color:#5fd0c8;}
+  #presenter .pv-timer{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;}
+  #presenter .pv-row{display:flex;gap:8px;align-items:center;justify-content:space-between;}
+  #presenter textarea{flex:1;min-height:80px;background:#16263a;border:1px solid #28415c;border-radius:10px;color:#e7eef6;
+    font-family:inherit;font-size:14px;line-height:1.65;padding:10px;resize:none;}
+  #presenter textarea:focus{outline:none;border-color:#5fd0c8;}
+  #presenter .pv-btn{background:#28415c;border:none;color:#e7eef6;border-radius:8px;padding:9px 12px;font-weight:700;cursor:pointer;font-size:13px;}
+  #presenter .pv-btn:active{transform:translateY(1px);}
+  #presenter .pv-controls{display:flex;gap:8px;} #presenter .pv-controls .pv-btn{flex:1;}
+</style>
+</head>
+<body>
+
+<div id="toolbar">
+  <div class="brand"><img src="logo.png" alt="Housing FP"></div>
+
+  <div class="pen-tools" id="penTools">
+    <button class="tool sel" data-tool="pen">ペン</button>
+    <button class="tool" data-tool="marker">マーカー</button>
+    <button class="tool" data-tool="eraser">消しゴム</button>
+    <span class="sizes">
+      <span class="size" data-size="2"><span class="dot" style="width:5px;height:5px"></span></span>
+      <span class="size sel" data-size="4"><span class="dot" style="width:9px;height:9px"></span></span>
+      <span class="size" data-size="8"><span class="dot" style="width:15px;height:15px"></span></span>
+    </span>
+    <span class="swatch sel" style="background:#e02424" data-color="#e02424"></span>
+    <span class="swatch" style="background:#2f53c8" data-color="#2f53c8"></span>
+    <span class="swatch" style="background:#16b9b1" data-color="#16b9b1"></span>
+    <span class="swatch" style="background:#f5b301" data-color="#f5b301"></span>
+    <span class="swatch" style="background:#1b2733" data-color="#1b2733"></span>
+    <button class="tool" id="undoBtn">↶ 戻る</button>
+    <button class="tool" id="redoBtn">進む ↷</button>
+    <button class="tool" id="clearBtn">全消去</button>
+    <button class="tool sel" id="penOnlyBtn" title="オンにすると指タッチでは書けません（ペン専用）">🖊 ペンのみ</button>
+  </div>
+
+  <button class="btn" id="presBtn">🗒 発表者</button>
+  <button class="btn" id="penBtn">✏️ 手書き</button>
+  <span class="navgroup"><span class="lab">項目</span><button class="btn" id="revealPrevBtn" title="項目を戻す">◀</button><button class="btn primary" id="revealNextBtn" title="項目を出す">▶</button></span>
+  <span class="pageind" id="pageInd">1 / 6</span>
+  <span class="navgroup"><span class="lab">ページ</span><button class="btn" id="prevBtn" title="前のページ">◀</button><button class="btn" id="nextBtn" title="次のページ">▶</button></span>
+</div>
+
+<aside id="presenter">
+  <h4>発表者ビュー（お客様には見えないよう注意）</h4>
+  <div class="pv-now" id="pvNow">—</div>
+  <div class="pv-next">次に出る：<span id="pvNext">—</span></div>
+  <div>
+    <div class="pv-row"><h4>経過時間</h4><button class="pv-btn" id="pvReset">リセット</button></div>
+    <div class="pv-timer" id="pvTimer">0:00</div>
+  </div>
+  <h4>台本メモ（このページ）</h4>
+  <textarea id="pvNotes" placeholder="このページで話す内容のメモ…"></textarea>
+  <div class="pv-controls">
+    <button class="pv-btn" id="pvPrev">◀ 戻る</button>
+    <button class="pv-btn" id="pvNextBtn">次へ ▶</button>
+  </div>
+</aside>
+
+<div id="stage">
+
+  <!-- ===== ページ1：表紙 ===== -->
+  <section class="slide active nostep" data-page="0">
+    <div class="slide-inner cover">
+      <div class="deco"></div>
+      <img class="coverlogo reveal" src="logo.png" alt="Housing FP">
+      <h1 class="reveal"><span id="coverTitleView">あなたに合った</span><br><span class="accent">住宅ローン返済プラン</span></h1>
+      <p class="lead reveal">無理のない返済と、賢い資産形成のご提案</p>
+      <div class="meta reveal">
+        <div class="row">
+          <div class="field"><label>お客様名</label>
+            <div class="unit-input"><input id="custName" placeholder="例：山田 太郎"><span class="unit">様</span></div></div>
+          <div class="field"><label>日付</label>
+            <div style="position:relative;">
+              <div id="meetDateView" style="font-size:clamp(18px,2.3vw,23px);font-weight:700;padding:11px 13px;border:2px solid var(--line);border-radius:11px;background:#fff;color:var(--ink);cursor:pointer;">2026年6月4日</div>
+              <input id="meetDate" type="date" title="タップで日付を変更" style="position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;opacity:0;cursor:pointer;"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ページ3：住宅ローンの種類 ===== -->
+  <section class="slide" data-page="2">
+    <div class="slide-inner">
+      <div class="eyebrow reveal">STEP 2 ｜ 金利タイプの違い</div>
+      <h1 class="slide-title reveal">変動・固定・フラット35の違い</h1>
+      <p class="subtitle reveal">同じ借入額でも、金利タイプで返済額と「リスクの持ち方」が変わります</p>
+      <div class="row reveal" style="max-width:420px;">
+        <div class="field"><label>借入額</label><div class="unit-input"><input id="t_loan" type="number" value="3500"><span class="unit">万円</span></div></div>
+        <div class="field"><label>返済期間</label><div class="unit-input"><input id="t_years" type="number" value="35"><span class="unit">年</span></div></div>
+      </div>
+      <div class="type-grid reveal">
+        <div class="type flat"><div class="head">フラット35<br>（全期間固定）</div><div class="body">
+          <div class="rate-in"><input id="t_flat" type="number" step="0.01" value="3.21"><span>％</span></div>
+          <div class="paybox"><span class="pl">毎月返済</span><span class="pv"><span id="pay_flat">－</span><small>円</small></span></div>
+          <div class="paybox"><span class="pl">総返済額</span><span class="pv"><span id="total_flat">－</span><small>万円</small></span></div></div></div>
+        <div class="type fix"><div class="head">固定金利<br>（10年・銀行平均）</div><div class="body">
+          <div class="rate-in"><input id="t_fix" type="number" step="0.01" value="3.56"><span>％</span></div>
+          <div class="paybox"><span class="pl">毎月返済</span><span class="pv"><span id="pay_fix">－</span><small>円</small></span></div>
+          <div class="paybox"><span class="pl">総返済額</span><span class="pv"><span id="total_fix">－</span><small>万円</small></span></div></div></div>
+        <div class="type var"><div class="head">変動金利</div><div class="body">
+          <div class="rate-in"><input id="t_var" type="number" step="0.01" value="1.125"><span>％</span></div>
+          <div class="paybox"><span class="pl">毎月返済</span><span class="pv"><span id="pay_var">－</span><small>円</small></span></div>
+          <div class="paybox"><span class="pl">総返済額</span><span class="pv"><span id="total_var">－</span><small>万円</small></span></div></div></div>
+      </div>
+
+      <div class="eyebrow reveal" style="margin-top:24px;">変動金利の「3つの金利」</div>
+      <p class="subtitle reveal" style="margin-bottom:12px;">店頭金利から優遇幅を引いたものが、実際に適用される金利です</p>
+      <div class="rate-flow reveal">
+        <div class="box"><div class="lab">店頭金利（基準）</div><div class="val"><span id="f_base">3.125</span>％</div></div>
+        <div class="op">−</div>
+        <div class="box"><div class="lab">優遇幅（割引）</div><div class="val">▲<span id="f_pref">2.0</span>％</div></div>
+        <div class="op">=</div>
+        <div class="box result"><div class="lab">実行金利（適用）</div><div class="val"><span id="f_real">1.125</span>％</div></div>
+      </div>
+      <div class="row reveal" style="max-width:420px;">
+        <div class="field"><label>店頭金利</label><div class="unit-input"><input id="in_base" type="number" step="0.001" value="3.125"><span class="unit">％</span></div></div>
+        <div class="field"><label>優遇幅</label><div class="unit-input"><input id="in_pref" type="number" step="0.001" value="2.0"><span class="unit">％</span></div></div>
+      </div>
+      <div class="note reveal"><b>優遇幅は契約時に決まり、完済まで続く</b>のが一般的です。だから「今の実行金利の低さ」だけでなく、<b>店頭金利が上がったときにどうなるか</b>を一緒に見ておくことが大切です。</div>
+    </div>
+  </section>
+
+  <!-- ===== ページ4：変動金利のルール ===== -->
+  <section class="slide" data-page="3">
+    <div class="slide-inner">
+      <div class="eyebrow reveal">STEP 3 ｜ 変動金利の仕組み</div>
+      <h1 class="slide-title reveal">変動金利の3つのルール</h1>
+      <p class="subtitle reveal">金利が上がっても、返済額はすぐには変わらない仕組みがあります</p>
+      <div class="rules reveal">
+        <div class="rule"><span class="num">1</span><h3>半年に一度、金利の見直し</h3><p>適用金利は<b>年2回（4月・10月）</b>見直されます。市場金利が動くと、適用金利もこのタイミングで変わります。</p></div>
+        <div class="rule"><span class="num">2</span><h3>5年に一度、返済額の見直し</h3><p>金利が変わっても、<b>毎月の返済額は5年間は変わりません</b>（5年ルール）。その間は元金と利息の<b>内訳</b>だけが変化します。</p></div>
+        <div class="rule"><span class="num">3</span><h3>125％ルール</h3><p>5年ごとに返済額が見直される際も、<b>前の返済額の125％（1.25倍）まで</b>しか上がりません。急な負担増を抑える仕組みです。</p></div>
+      </div>
+      <div class="note warn reveal"><b>注意：</b>返済額が抑えられても、発生した利息が消えるわけではありません。金利が大きく上がると、返済額に収まりきらない<b>「未払利息」</b>が生じることがあります。</div>
+      <div class="note reveal"><b>銀行によってルールが違います。</b>ネット銀行を中心に<b>「5年ルール・125％ルールを採用していない」</b>銀行もあります。その場合、金利が上がると<b>返済額がすぐに・上限なく</b>増えるため、どちらの銀行かを必ず確認しましょう。</div>
+    </div>
+  </section>
+
+  <!-- ===== ページ5：金利推移 ===== -->
+  <section class="slide" data-page="4">
+    <div class="slide-inner">
+      <div class="eyebrow reveal">STEP 4 ｜ これまでの金利</div>
+      <h1 class="slide-title reveal">住宅ローン金利の推移</h1>
+      <p class="subtitle reveal">1989年〜現在。歴史的に見て「今の金利」がどの位置かを確認します</p>
+      <div class="chart-frame reveal"><iframe src="kinri-chart.html" title="日本金利推移チャート"></iframe></div>
+      <small class="disc reveal">グラフ内のボタンで期間切替・住宅ローン金利の表示切替・主要イベント表示ができます。出典：日本銀行・財務省等の公表値を基に作成。</small>
+    </div>
+  </section>
+
+  <!-- ===== ページ6：住宅ローン控除 ===== -->
+  <section class="slide" data-page="5">
+    <div class="slide-inner">
+      <div class="eyebrow reveal">STEP 1 ｜ 住宅ローン控除</div>
+      <h1 class="slide-title reveal">住宅ローン控除の概算</h1>
+      <p class="subtitle reveal">「残高×0.7％」と「ご年収から計算した上限」、<b>小さい方</b>が実際に戻る額です</p>
+
+      <div class="row reveal">
+        <div class="field"><label>入居年</label><select id="k_year"><option value="2024">2024年</option><option value="2025" selected>2025年</option><option value="2026">2026年</option></select></div>
+        <div class="field"><label>住宅の省エネ性能</label><select id="k_perf">
+          <option value="chouki">長期優良・低炭素住宅</option>
+          <option value="zeh">ZEH水準省エネ住宅</option>
+          <option value="shoene" selected>省エネ基準適合住宅</option>
+          <option value="ippan">一般住宅（その他）</option></select></div>
+        <div class="field"><label>返済期間</label><div class="unit-input"><input id="k_years" type="number" value="35"><span class="unit">年</span></div></div>
+        <div class="field"><label>金利（年）</label><div class="unit-input"><input id="k_rate" type="number" step="0.01" value="1.0"><span class="unit">％</span></div></div>
+      </div>
+      <div class="checkline reveal"><input type="checkbox" id="k_tokurei"><label for="k_tokurei">特例対象個人（子育て世帯／夫婦どちらかが40歳未満の若者夫婦世帯）に該当する</label>
+        <span class="pill">借入限度額が上乗せ</span></div>
+
+      <div class="note blue reveal" style="margin-top:14px;">借入限度額：<b><span id="k_limit">3,000</span>万円</b>（入居年・性能・特例で自動判定）　／　控除率0.7％　／　控除期間 <span id="k_period">13</span>年</div>
+
+      <!-- 本人 -->
+      <div class="reveal" style="margin-top:6px;">
+        <div class="barlabel" style="font-size:15px;color:var(--ink);">本人</div>
+        <div class="row">
+          <div class="field"><label>借入額（年末残高の目安）</label><div class="unit-input"><input id="k_loanA" type="number" value="3500"><span class="unit">万円</span></div></div>
+          <div class="field"><label>ご年収</label><div class="unit-input"><input id="k_incomeA" type="number" value="500"><span class="unit">万円</span></div></div>
+        </div>
+        <div class="result-grid" style="margin-top:4px;">
+          <div class="card"><div class="k">① 残高×0.7％</div><div class="v" style="color:var(--teal-d)"><span id="kA_rule">－</span><small>万円/年</small></div></div>
+          <div class="card"><div class="k">② 年収からの上限</div><div class="v" style="color:var(--blue-d)"><span id="kA_income">－</span><small>万円/年</small></div>
+            <div class="kbreak">所得税 <b><span id="kA_tax">－</span>万</b> ＋ 住民税 <b><span id="kA_jumin">－</span>万</b><span class="cap" id="kA_juminNote"></span></div></div>
+          <div class="card hero"><div class="k">実際に戻る額（①②の小さい方）<span class="apply-tag off" id="kA_tag">－</span></div><div class="v"><span id="kA_apply">－</span><small>万円/年</small></div></div>
+        </div>
+        <div class="note reveal" style="margin-top:0;">初年度 約<b><span id="kA_y1">－</span>万円</b>　／　<span id="k_period2">13</span>年間の合計（概算）約<b><span id="kA_total">－</span>万円</b></div>
+        <details class="kdetails reveal"><summary>1年ごとの控除額（全期間）を表示</summary>
+          <table class="ktable"><thead><tr><th>年</th><th>年末残高</th><th>残高×0.7%</th><th>控除額</th></tr></thead><tbody id="kA_rows"></tbody><tfoot><tr><td colspan="3">合計</td><td id="kA_foot">－</td></tr></tfoot></table>
+        </details>
+      </div>
+
+      <!-- ペアローン -->
+      <div class="checkline reveal" style="margin-top:8px;"><input type="checkbox" id="k_pair"><label for="k_pair">ペアローン（配偶者も借入）で計算する</label></div>
+      <div class="reveal" id="pairBlock" style="display:none;">
+        <div class="barlabel" style="font-size:15px;color:var(--ink);">配偶者</div>
+        <div class="row">
+          <div class="field"><label>借入額（年末残高の目安）</label><div class="unit-input"><input id="k_loanB" type="number" value="2000"><span class="unit">万円</span></div></div>
+          <div class="field"><label>ご年収</label><div class="unit-input"><input id="k_incomeB" type="number" value="400"><span class="unit">万円</span></div></div>
+        </div>
+        <div class="result-grid" style="margin-top:4px;">
+          <div class="card"><div class="k">① 残高×0.7％</div><div class="v" style="color:var(--teal-d)"><span id="kB_rule">－</span><small>万円/年</small></div></div>
+          <div class="card"><div class="k">② 年収からの上限</div><div class="v" style="color:var(--blue-d)"><span id="kB_income">－</span><small>万円/年</small></div>
+            <div class="kbreak">所得税 <b><span id="kB_tax">－</span>万</b> ＋ 住民税 <b><span id="kB_jumin">－</span>万</b><span class="cap" id="kB_juminNote"></span></div></div>
+          <div class="card teal"><div class="k">配偶者の戻る額<span class="apply-tag off" id="kB_tag">－</span></div><div class="v"><span id="kB_apply">－</span><small>万円/年</small></div></div>
+        </div>
+        <details class="kdetails reveal"><summary>配偶者の1年ごとの控除額（全期間）を表示</summary>
+          <table class="ktable"><thead><tr><th>年</th><th>年末残高</th><th>残高×0.7%</th><th>控除額</th></tr></thead><tbody id="kB_rows"></tbody><tfoot><tr><td colspan="3">合計</td><td id="kB_foot">－</td></tr></tfoot></table>
+        </details>
+        <div class="card hero reveal" style="margin-top:6px;"><div class="k">世帯合計（13年・概算）</div><div class="v"><span id="k_household">－</span><small>万円</small></div></div>
+      </div>
+
+      <small class="disc reveal">※あくまで概算です。所得税額は給与収入から給与所得控除・基礎控除・社会保険料（概算）を差し引いて試算しており、各種控除や扶養により実際と異なります。制度は税制改正で変わるため、最終的には国税庁・税理士等で最新情報をご確認ください。住民税からの控除上限は年9.75万円で計算。</small>
+    </div>
+  </section>
+
+  <!-- ===== ページ7：繰上げ返済 vs 運用 ===== -->
+  <section class="slide" data-page="6">
+    <div class="slide-inner">
+      <div class="eyebrow reveal">STEP 5 ｜ 頭金と繰上げ返済の考え方</div>
+      <h1 class="slide-title reveal">頭金・繰上げ返済の効果</h1>
+      <p class="subtitle reveal">頭金と繰り上げ返済を分けて、それぞれの「効果」と「運用に回した場合」を見ます</p>
+
+      <div class="row reveal" style="max-width:640px;">
+        <div class="field"><label>借入額</label><div class="unit-input"><input id="z_loan" type="number" value="3500"><span class="unit">万円</span></div></div>
+        <div class="field"><label>金利（年）</label><div class="unit-input"><input id="z_rate" type="number" step="0.01" value="1.125"><span class="unit">％</span></div></div>
+        <div class="field"><label>返済期間</label><div class="unit-input"><input id="z_years" type="number" value="35"><span class="unit">年</span></div></div>
+      </div>
+      <div class="paylist reveal">
+        <div class="pl-row"><span class="pl-k">返済月額</span><span class="pl-v"><span id="z_monthly">－</span><small>円/月</small></span></div>
+        <div class="pl-row"><span class="pl-k">返済元本（借入額）</span><span class="pl-v"><span id="z_principal">－</span><small>万円</small></span></div>
+        <div class="pl-row"><span class="pl-k">返済利息</span><span class="pl-v" style="color:var(--teal-d)"><span id="z_interest">－</span><small>万円</small></span></div>
+        <div class="pl-row total"><span class="pl-k">総返済額（元本＋利息）</span><span class="pl-v"><span id="z_totalpay">－</span><small>万円</small></span></div>
+      </div>
+      <div class="row reveal" style="max-width:420px;margin-top:10px;">
+        <div class="field"><label>想定運用利回り</label><div class="unit-input"><input id="z_yield" type="number" step="0.1" value="3"><span class="unit">％</span></div></div>
+        <div class="field"><label>運用年数</label><div class="unit-input"><input id="z_invYears" type="number" value="10"><span class="unit">年</span></div></div>
+      </div>
+      <small class="disc reveal" style="margin-top:2px;">↑「運用に回した場合」の前提（パート1・2 共通）</small>
+
+      <!-- パート1：頭金 -->
+      <div class="eyebrow reveal" style="margin-top:22px;">パート1 ｜ 頭金</div>
+      <div class="row reveal" style="max-width:300px;">
+        <div class="field"><label>頭金</label><div class="unit-input"><input id="z_down" type="number" value="300"><span class="unit">万円</span></div></div>
+      </div>
+      <div class="result-grid reveal">
+        <div class="card teal"><div class="k">頭金 <span id="z_downV">300</span>万円で<br>総利息が…</div><div class="v">−<span id="z_downSave">－</span><small>万円</small></div></div>
+      </div>
+      <div class="reveal" style="font-size:15px;font-weight:800;color:var(--ink);margin-top:10px;margin-bottom:8px;">同じ頭金の分（<span id="z_downV2">300</span>万円）を運用に回したら</div>
+      <div class="result-grid reveal">
+        <div class="card"><div class="k"><span id="z_invYearsV">10</span>年後の運用資産</div><div class="v" style="color:var(--blue-d)"><span id="z_grownD">－</span><small>万円</small></div>
+          <div class="kbreak">元本 <b><span id="z_downV3">300</span>万</b> ＋ 運用益 <b>+<span id="z_gainD">－</span>万</b></div></div>
+        <div class="card teal"><div class="k">増えた額で<b>繰上げ返済</b>したら<br>節約できる利息</div><div class="v">−<span id="z_caseAsaveD">－</span><small>万円</small></div></div>
+      </div>
+      <div class="note reveal"><b>頭金は確実に総利息を減らせます。</b>ただし、同じお金を運用に回す選択肢もあります（利回りがローン金利を上回れば運用が有利になりやすい）。</div>
+
+      <!-- パート2：繰り上げ返済 -->
+      <div class="eyebrow reveal" style="margin-top:22px;">パート2 ｜ 繰り上げ返済</div>
+      <div class="row reveal" style="max-width:420px;">
+        <div class="field"><label>繰上げ返済額</label><div class="unit-input"><input id="z_prepay" type="number" value="200"><span class="unit">万円</span></div></div>
+        <div class="field"><label>繰上げの時期</label><div class="unit-input"><input id="z_prepayYear" type="number" value="10"><span class="unit">年後</span></div></div>
+      </div>
+      <div class="result-grid reveal">
+        <div class="card hero"><div class="k">繰上げ <span id="z_prepayV">200</span>万円（<span id="z_prepayYearV">10</span>年後）で<br>利息が…</div><div class="v">−<span id="z_prepaySave">－</span><small>万円</small></div></div>
+        <div class="card"><div class="k">繰上げによる期間短縮</div><div class="v" style="color:var(--blue-d)">−<span id="z_shorten">－</span></div></div>
+      </div>
+      <details class="kdetails reveal" style="max-width:680px;"><summary>1年ごとの表で「繰上げ あり／なし」を比べる（<span id="z_amortHint">10</span>年目に<span id="z_amortHint2">200</span>万円）</summary>
+        <div style="overflow-x:auto;"><table class="ktable"><thead><tr><th>年</th><th>元本</th><th>利息</th><th>残高<br>繰上げなし</th><th>残高<br>繰上げあり</th></tr></thead><tbody id="z_amort"></tbody></table></div>
+      </details>
+      <div class="reveal" style="font-size:15px;font-weight:800;color:var(--ink);margin-top:12px;margin-bottom:8px;">同じ繰り上げ返済の分（<span id="z_prepayV2">200</span>万円）を運用に回したら</div>
+      <div class="result-grid reveal">
+        <div class="card"><div class="k"><span id="z_invYearsV2">10</span>年後の運用資産</div><div class="v" style="color:var(--blue-d)"><span id="z_grownP">－</span><small>万円</small></div>
+          <div class="kbreak">元本 <b><span id="z_prepayV3">200</span>万</b> ＋ 運用益 <b>+<span id="z_gainP">－</span>万</b></div></div>
+        <div class="card teal"><div class="k">増えた額で<b>繰上げ返済</b>したら<br>節約できる利息</div><div class="v">−<span id="z_caseAsaveP">－</span><small>万円</small></div></div>
+      </div>
+
+      <div class="note warn reveal"><b>運用には変動リスクがあります。</b>利回りは確実ではなく元本割れの可能性も。生活防衛資金を確保し、無理のない範囲で。繰上げ返済は「確実に利息が減る」安心感がある点も大切です。</div>
+      <small class="disc reveal">繰上げ・頭金は「期間短縮型」での利息軽減を概算。運用は複利・税引前の概算で手数料・税金は未考慮。各「節約できる利息」は、運用後の資金で当該時点の残高を一括返済した場合の概算です。</small>
+    </div>
+  </section>
+
+</div>
+
+<canvas id="penLayer"></canvas>
+<div id="penHint">ペン・マーカー・消しゴムで書き込めます　／　もう一度「手書き」で終了（書き込みはページごとに保存）</div>
+<button class="navarrow" id="navPrev">◀</button>
+<button class="navarrow" id="navNext">▶</button>
+
+<script>
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n).toLocaleString('ja-JP');
+const fmt1=n=>(Math.round(n*10)/10).toLocaleString('ja-JP');
+
+/* ====== ページ送り ====== */
+let slides=[...document.querySelectorAll('.slide')];
+slides=[0,4,1,2,3,5].map(i=>slides[i]); // 表紙→住宅ローン控除→金利タイプ→変動ルール→金利推移→繰上げ の順
+let page=0, step=0;
+function revealItems(slide,count){
+  const items=slide.querySelectorAll('.reveal');
+  items.forEach((el,i)=>el.classList.toggle('shown', i<count));
+  return items.length;
+}
+// allShown=true なら全項目表示（前ページに戻るとき）。forward は最初の1項目だけ表示。
+function showPage(n,allShown){
+  page=Math.max(0,Math.min(slides.length-1,n));
+  slides.forEach((s,i)=>s.classList.toggle('active',i===page));
+  const slide=slides[page];
+  slide.querySelectorAll('[data-counted]').forEach(el=>el.removeAttribute('data-counted'));
+  const total=slide.querySelectorAll('.reveal').length;
+  if(slide.classList.contains('nostep')) step=total;
+  else step=allShown?total:Math.min(1,total);
+  revealItems(slide,step);
+  $('pageInd').textContent=(page+1)+' / '+slides.length;
+  if(slide.querySelector('#rateChart')) drawChart();
+  redraw();
+  animateNumbers();
+  updatePresenter();
+}
+// 項目を出す／戻す（ページは変えない）
+function revealNext(){
+  const slide=slides[page];
+  if(slide.classList.contains('nostep'))return;
+  const total=slide.querySelectorAll('.reveal').length;
+  if(step<total){ step++; revealItems(slide,step); animateNumbers(); updatePresenter(); }
+}
+function revealPrev(){
+  const slide=slides[page];
+  if(slide.classList.contains('nostep'))return;
+  if(step>1){ step--; revealItems(slide,step); updatePresenter(); }
+}
+// ページを進める／戻す（項目は次ページ先頭から）
+function nextPage(){ if(page<slides.length-1) showPage(page+1,false); }
+function prevPage(){ if(page>0) showPage(page-1,true); }
+// 画面タップ用：項目を1つ進め、出し切ったら次ページへ（スムーズ送り）
+function advance(){
+  const slide=slides[page];
+  const total=slide.querySelectorAll('.reveal').length;
+  if(!slide.classList.contains('nostep') && step<total) revealNext();
+  else nextPage();
+}
+function back(){
+  const slide=slides[page];
+  if(!slide.classList.contains('nostep') && step>1) revealPrev();
+  else prevPage();
+}
+// ボタン割り当て（項目とページを分離）
+// 「項目」矢印＝項目を出し切ったらページもめくる（連続送り）
+$('revealNextBtn').onclick=advance;
+$('revealPrevBtn').onclick=back;
+$('nextBtn').onclick=nextPage;   // 「ページ」矢印＝ページ専用
+$('prevBtn').onclick=prevPage;
+$('navNext').onclick=nextPage;   // 画面端の大きい矢印＝ページ送り
+$('navPrev').onclick=prevPage;
+window.addEventListener('keydown',e=>{
+  if(document.activeElement&&['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName))return;
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();advance();}  // →／スペース＝項目→ページ
+  if(e.key==='ArrowLeft'){e.preventDefault();back();}                   // ←＝項目→前ページ
+  if(e.key==='PageDown'||e.key==='ArrowDown'){e.preventDefault();nextPage();}
+  if(e.key==='PageUp'||e.key==='ArrowUp'){e.preventDefault();prevPage();}
+});
+// 画面タップでもスムーズに送る（入力欄・ボタン・ドロップダウン・手書き中は除く）
+$('stage').addEventListener('click',e=>{
+  if(penOn)return;
+  if(e.target.closest('input,select,button,textarea,label,a,summary,details'))return;
+  advance();
+});
+
+/* ====== 共通：毎月返済額 ====== */
+function monthlyPay(principalYen, ratePct, years){
+  const n=years*12; if(principalYen<=0||n<=0)return 0;
+  if(!ratePct||ratePct==0)return principalYen/n;
+  const r=ratePct/100/12; return principalYen*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
+}
+// 年末残高（y年後）
+function balanceAfter(principalYen, ratePct, years, afterYears){
+  const m=monthlyPay(principalYen,ratePct,years); const r=ratePct/100/12; let b=principalYen;
+  const months=Math.min(afterYears*12, years*12);
+  for(let i=0;i<months;i++){ b=b+b*r-m; if(b<0)b=0; }
+  return b;
+}
+
+
+/* ====== ページ3：種類別 ＋ 実行金利 ====== */
+function calcTypes(){
+  const P=(parseFloat($('t_loan').value)||0)*10000; const y=parseFloat($('t_years').value)||0;
+  const n=y*12;
+  const base=parseFloat($('in_base').value)||0, pref=parseFloat($('in_pref').value)||0;
+  const real=Math.max(0,base-pref);
+  const tr=v=>(Math.round(v*1000)/1000).toString();
+  $('f_base').textContent=tr(base); $('f_pref').textContent=tr(pref); $('f_real').textContent=tr(real);
+  // 実行金利を変動の入力欄に反映
+  $('t_var').value=Math.round(real*1000)/1000;
+  // 毎月返済額・総返済額（総返済額は万円）
+  const mFlat=monthlyPay(P,parseFloat($('t_flat').value),y);
+  const mFix=monthlyPay(P,parseFloat($('t_fix').value),y);
+  const mVar=monthlyPay(P,real,y);
+  setNum('pay_flat',mFlat); setNum('total_flat',mFlat*n/10000);
+  setNum('pay_fix',mFix);   setNum('total_fix',mFix*n/10000);
+  setNum('pay_var',mVar);   setNum('total_var',mVar*n/10000);
+}
+['t_loan','t_years','t_var','t_flat','t_fix'].forEach(id=>$(id).addEventListener('input',calcTypes));
+['in_base','in_pref'].forEach(id=>$(id).addEventListener('input',calcTypes));
+
+/* ====== ページ6：住宅ローン控除 ======
+   借入限度額マトリクス（万円）— 税制改正で変わる場合はここを編集
+   [一般世帯, 特例対象個人] */
+const KOUJO_LIMITS={
+  2024:{chouki:[4500,5000],zeh:[3500,4500],shoene:[3000,4000],ippan:[0,0]},
+  2025:{chouki:[4500,5000],zeh:[3500,4500],shoene:[3000,4000],ippan:[0,0]},
+  2026:{chouki:[4500,5000],zeh:[3500,4500],shoene:[3000,4000],ippan:[0,0]}
+};
+// 給与所得控除
+function kyuyoControl(inc){ // inc=円
+  if(inc<=1625000)return 550000;
+  if(inc<=1800000)return inc*0.4-100000;
+  if(inc<=3600000)return inc*0.3+80000;
+  if(inc<=6600000)return inc*0.2+440000;
+  if(inc<=8500000)return inc*0.1+1100000;
+  return 1950000;
+}
+// 課税所得（概算）：基礎控除48万＋社会保険料概算14.5%
+function taxableIncome(incomeMan){
+  const inc=incomeMan*10000; if(inc<=0)return 0;
+  const kyuyo=inc-kyuyoControl(inc);
+  const shaho=inc*0.145, kiso=480000;
+  return Math.max(0,kyuyo-shaho-kiso);
+}
+// 所得税額（概算）
+function incomeTax(K){
+  let t;
+  if(K<=1950000)t=K*0.05;
+  else if(K<=3300000)t=K*0.10-97500;
+  else if(K<=6950000)t=K*0.20-427500;
+  else if(K<=9000000)t=K*0.23-636000;
+  else if(K<=18000000)t=K*0.33-1536000;
+  else if(K<=40000000)t=K*0.40-2796000;
+  else t=K*0.45-4796000;
+  return Math.max(0,t);
+}
+// 年収からの控除上限（円/年）＝所得税全額＋住民税控除上限(min(課税所得×5%,97500))
+function incomeCap(incomeMan){
+  const K=taxableIncome(incomeMan);
+  const tax=incomeTax(K);                       // 所得税額
+  const juminUncapped=K*0.05;                   // 課税所得×5%
+  const jumin=Math.min(juminUncapped,97500);    // 住民税からの控除（上限97,500円）
+  return {tax, jumin, juminUncapped, capped:juminUncapped>97500, total:tax+jumin};
+}
+function limitFor(){
+  const y=$('k_year').value, perf=$('k_perf').value, tok=$('k_tokurei').checked?1:0;
+  return KOUJO_LIMITS[y][perf][tok]; // 万円
+}
+// 1人分の控除計算
+function personKoujo(loanMan, incomeMan, limitMan, rate, years, period){
+  const limitYen=limitMan*10000, P=loanMan*10000;
+  const cap=incomeCap(incomeMan);            // {tax,jumin,total,...} 円/年
+  // 1年ごと（1〜period年）
+  const rows=[]; let total=0;
+  for(let yy=1; yy<=period; yy++){
+    const balRaw=balanceAfter(P,rate,years,yy);       // 実際の年末残高
+    const rule=Math.min(balRaw,limitYen)*0.007;       // 残高×0.7%（限度額まで）
+    const apply=Math.min(rule,cap.total);             // 控除額＝①②の小さい方
+    total+=apply;
+    rows.push({year:yy, bal:balRaw, rule, apply, capByIncome: rule>cap.total});
+  }
+  const rule1=rows[0].rule, apply1=rows[0].apply;
+  return {rule1, cap, apply1, total, rows, ruleBigger: rule1<=cap.total};
+}
+function calcKoujo(){
+  const limitMan=limitFor();
+  const perf=$('k_perf').value;
+  const period=(perf==='ippan')?10:13;
+  $('k_limit').textContent=fmt(limitMan);
+  $('k_period').textContent=period; $('k_period2').textContent=period;
+  const rate=parseFloat($('k_rate').value)||0, years=parseFloat($('k_years').value)||35;
+  // 本人
+  const A=personKoujo(parseFloat($('k_loanA').value)||0, parseFloat($('k_incomeA').value)||0, limitMan, rate, years, period);
+  setNum('kA_rule',A.rule1/10000,1); setNum('kA_income',A.cap.total/10000,1);
+  setNum('kA_apply',A.apply1/10000,1); setNum('kA_y1',A.apply1/10000,1); setNum('kA_total',A.total/10000,1);
+  setBreak('kA',A.cap); renderTable('kA',A); tagApply('kA_tag',A.ruleBigger);
+  // ペア
+  let household=A.total;
+  if($('k_pair').checked){
+    const B=personKoujo(parseFloat($('k_loanB').value)||0, parseFloat($('k_incomeB').value)||0, limitMan, rate, years, period);
+    setNum('kB_rule',B.rule1/10000,1); setNum('kB_income',B.cap.total/10000,1);
+    setNum('kB_apply',B.apply1/10000,1); setBreak('kB',B.cap); renderTable('kB',B); tagApply('kB_tag',B.ruleBigger);
+    household+=B.total;
+  }
+  setNum('k_household',household/10000,1);
+}
+// 万円表示（小数2桁まで）
+function man2(yen){ return (Math.round(yen/10000*100)/100).toLocaleString('ja-JP'); }
+function man1(yen){ return (Math.round(yen/10000*10)/10).toLocaleString('ja-JP'); }
+function setBreak(prefix, cap){
+  $(prefix+'_tax').textContent=man1(cap.tax);
+  $(prefix+'_jumin').textContent=man2(cap.jumin);
+  $(prefix+'_juminNote').textContent=cap.capped
+    ? `住民税は上限前 ${man2(cap.juminUncapped)}万（課税所得×5％）→ 上限の97,500円を適用`
+    : `住民税は課税所得×5％＝${man2(cap.jumin)}万（上限97,500円の範囲内）`;
+}
+// 1年ごと13年分の表
+function renderTable(prefix, p){
+  const tb=$(prefix+'_rows'); tb.innerHTML='';
+  p.rows.forEach(r=>{
+    const tr=document.createElement('tr');
+    if(r.capByIncome) tr.className='cap-on';
+    tr.innerHTML=`<td>${r.year}年目</td><td>${fmt(r.bal/10000)}万</td><td>${man1(r.rule)}万</td><td>${man1(r.apply)}万</td>`;
+    tb.appendChild(tr);
+  });
+  $(prefix+'_foot').textContent=man1(p.total)+'万';
+}
+function tagApply(id,ruleBigger){
+  const el=$(id);
+  el.textContent=ruleBigger?'①が適用':'②が適用';
+  el.className='apply-tag on';
+}
+['k_year','k_perf','k_tokurei','k_years','k_rate','k_loanA','k_incomeA','k_loanB','k_incomeB','k_pair']
+  .forEach(id=>$(id).addEventListener('input',calcKoujo));
+$('k_pair').addEventListener('change',()=>{ $('pairBlock').style.display=$('k_pair').checked?'block':'none'; calcKoujo(); });
+
+/* ====== STEP5：頭金・繰上げの効果／運用してから繰上げ ====== */
+function totalInterest(Pyen,i,years){ return monthlyPay(Pyen,i,years)*years*12 - Pyen; }
+// 残り返済月数（元金Pyen・毎月返済m・年利i%）
+function remainingMonths(Pyen,m,i){
+  if(Pyen<=0)return 0;
+  if(!i||i==0)return Pyen/m;
+  const r=i/1200, x=1-r*Pyen/m;
+  if(x<=0)return Infinity;
+  return -Math.log(x)/Math.log(1+r);
+}
+// 期間短縮型の繰上げ返済：T年後にQ円を返した場合の節約利息・短縮月数
+function prepaySaving(P0,i,years,Q,T){
+  const m0=monthlyPay(P0,i,years);
+  const B=balanceAfter(P0,i,years,T);          // T年後の残高
+  const remMonths=years*12-T*12;
+  const intNo=m0*remMonths-B;                   // 繰上げなしの残り利息
+  const q=Math.min(Q,B);
+  const newP=B-q;
+  const nPrime=remainingMonths(newP,m0,i);
+  const intWith=m0*nPrime-newP;
+  return {save:Math.max(0,intNo-intWith), shortenMonths:Math.max(0,remMonths-nPrime), excess:Math.max(0,Q-B), balanceAtT:B};
+}
+// 1年ごとの返済内訳。Q=繰上げ額(円)・T=繰上げ年(0で無効)。通常残高と繰上げ後残高の両方を返す
+function amortYearly(P0,i,Y,Q,T){
+  const m=monthlyPay(P0,i,Y), r=i/100/12;
+  let balN=P0, balP=P0; const rows=[]; let doneP=0;
+  for(let k=1;k<=Y;k++){
+    let pr=0,intr=0;
+    for(let mo=0;mo<12 && balN>0.5;mo++){ const it=balN*r; let pp=m-it; if(pp>balN)pp=balN; balN-=pp; pr+=pp; intr+=it; if(balN<0)balN=0; }
+    for(let mo=0;mo<12 && balP>0.5;mo++){ const it=balP*r; let pp=m-it; if(pp>balP)pp=balP; balP-=pp; if(balP<0)balP=0; }
+    if(T && k===T && Q>0 && balP>0){ balP=Math.max(0,balP-Q); }     // 年末に一括繰上げ
+    if(balP<=0.5 && !doneP) doneP=k;
+    rows.push({year:k, principal:pr, interest:intr, balN, balP, prepayHere:!!(T&&k===T&&Q>0)});
+  }
+  return {rows, doneP};
+}
+function renderStep5Amort(P0,i,Y,Q,T){
+  const tb=$('z_amort'); if(!tb)return; tb.innerHTML='';
+  const {rows,doneP}=amortYearly(P0,i,Y,Q,T);
+  rows.forEach(r=>{
+    const tr=document.createElement('tr');
+    if(r.prepayHere) tr.className='prepay-row';
+    let balP;
+    if(r.balP<=0.5) balP=(r.year===doneP)?'<b style="color:var(--good)">完済</b>':'—';
+    else balP=fmt(r.balP)+'円';
+    const ylab=r.prepayHere?(r.year+'年目↩'):(r.year+'年目');
+    tr.innerHTML=`<td>${ylab}</td><td>${fmt(r.principal)}円</td><td>${fmt(r.interest)}円</td><td>${fmt(r.balN)}円</td><td>${balP}</td>`;
+    tb.appendChild(tr);
+  });
+}
+function calcStep5(){
+  const P0=(parseFloat($('z_loan').value)||0)*10000;
+  const i=parseFloat($('z_rate').value)||0;
+  const Y=parseFloat($('z_years').value)||35;
+  // 返済の内訳（月額・元本・利息・総額）
+  const m0=monthlyPay(P0,i,Y);
+  const int0=totalInterest(P0,i,Y);
+  setNum('z_monthly',m0);
+  setNum('z_principal',P0/10000); setNum('z_interest',int0/10000); setNum('z_totalpay',(P0+int0)/10000);
+  // パート1：頭金・繰上げの効果
+  const D=(parseFloat($('z_down').value)||0)*10000;
+  const downSave=totalInterest(P0,i,Y)-totalInterest(Math.max(0,P0-D),i,Y);
+  const Qp=(parseFloat($('z_prepay').value)||0)*10000;
+  const Tp=parseFloat($('z_prepayYear').value)||0;
+  const pp=prepaySaving(P0,i,Y,Qp,Tp);
+  setNum('z_downSave',downSave/10000,1);
+  setNum('z_prepaySave',pp.save/10000,1);
+  // 1年ごとの表（繰上げ あり/なし）
+  renderStep5Amort(P0,i,Y,Qp,Tp);
+  $('z_amortHint').textContent=fmt(Tp); $('z_amortHint2').textContent=fmt(Qp/10000);
+  const mo=Math.round(pp.shortenMonths);
+  $('z_shorten').textContent=Math.floor(mo/12)+'年'+(mo%12)+'ヶ月';
+  $('z_downV').textContent=fmt(D/10000); $('z_prepayV').textContent=fmt(Qp/10000); $('z_prepayYearV').textContent=fmt(Tp);
+  // パート2：頭金の分・繰り上げ返済の分を、それぞれ運用してから繰上げ（同時表示）
+  const r2=parseFloat($('z_yield').value)||0;
+  const N=parseFloat($('z_invYears').value)||0;
+  function investThenPrepay(amtYen){
+    const grown=amtYen*Math.pow(1+r2/100,N);
+    return {grown, gain:grown-amtYen, save:prepaySaving(P0,i,Y,grown,N).save};
+  }
+  const inv1=investThenPrepay(D);      // 頭金の分
+  const inv2=investThenPrepay(Qp);     // 繰り上げ返済の分
+  // 頭金の分
+  $('z_downV2').textContent=fmt(D/10000); $('z_downV3').textContent=fmt(D/10000);
+  setNum('z_grownD',inv1.grown/10000,1); setNum('z_gainD',inv1.gain/10000,1); setNum('z_caseAsaveD',inv1.save/10000,1);
+  // 繰り上げ返済の分
+  $('z_prepayV2').textContent=fmt(Qp/10000); $('z_prepayV3').textContent=fmt(Qp/10000);
+  setNum('z_grownP',inv2.grown/10000,1); setNum('z_gainP',inv2.gain/10000,1); setNum('z_caseAsaveP',inv2.save/10000,1);
+  $('z_invYearsV').textContent=fmt(N); $('z_invYearsV2').textContent=fmt(N);
+}
+['z_loan','z_rate','z_years','z_down','z_prepay','z_prepayYear','z_yield','z_invYears']
+  .forEach(id=>$(id).addEventListener('input',calcStep5));
+
+/* ====== 表紙 ====== */
+$('custName').addEventListener('input',()=>{ const v=$('custName').value.trim(); $('coverTitleView').textContent=v?(v+'様への'):'あなたに合った'; });
+(function(){
+  function fmtJDate(v){ if(!v)return''; const p=v.split('-'); return (+p[0])+'年'+(+p[1])+'月'+(+p[2])+'日'; }
+  const t=new Date();
+  const v=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+  $('meetDate').value=v; $('meetDateView').textContent=fmtJDate(v);
+  $('meetDate').addEventListener('input',()=>{ $('meetDateView').textContent=fmtJDate($('meetDate').value); });
+})();
+
+/* ====== 数字のカウントアップ演出 ====== */
+function setNum(id,val,dec){ const el=$(id); el.dataset.val=val; el.dataset.dec=dec||0; el.textContent=(dec?fmt1(val):fmt(val)); }
+function animateNumbers(){
+  const slide=slides[page];
+  slide.querySelectorAll('.reveal.shown [data-val], .nostep [data-val]').forEach(el=>{
+    if(el.dataset.counted)return; el.dataset.counted='1';
+    const start=performance.now(), dur=520, from=0;
+    function step(t){
+      const to=parseFloat(el.dataset.val)||0, dec=parseInt(el.dataset.dec)||0; // 最新値に追従
+      const p=Math.min(1,(t-start)/dur), e=1-Math.pow(1-p,3), cur=from+(to-from)*e;
+      el.textContent=dec?fmt1(cur):fmt(cur);
+      if(p<1)requestAnimationFrame(step); else el.textContent=dec?fmt1(to):fmt(to);
+    }
+    requestAnimationFrame(step);
+  });
+}
+
+/* ====== 金利推移チャート（自前描画・オフライン対応） ====== */
+const housingVariable=[["1989-01",5.25],["1990-04",8.13],["1990-09",8.50],["1991-01",8.50],["1992-04",5.75],["1993-09",3.88],["1995-07",2.50],["1995-09",2.13],["1999-03",1.88],["2006-08",2.13],["2007-03",2.38],["2009-01",1.98],["2010-01",1.48],["2012-01",1.18],["2014-01",0.98],["2016-02",0.78],["2018-01",0.63],["2020-01",0.53],["2022-01",0.48],["2023-01",0.45],["2024-01",0.45],["2024-09",0.63],["2025-03",0.88],["2026-02",1.13]];
+const housingFixed=[["1989-01",6.50],["1990-09",9.40],["1991-01",8.80],["1992-12",5.80],["1993-12",4.60],["1995-12",4.00],["1997-10",3.10],["1998-10",2.30],["2003-06",2.00],["2006-06",3.30],["2008-06",3.10],["2010-06",2.60],["2013-04",1.90],["2016-07",1.10],["2019-08",1.00],["2022-01",1.50],["2023-10",2.20],["2024-06",2.40],["2025-01",2.60],["2025-06",2.80],["2026-02",3.00]];
+const EVENTS=[["1990-09","バブル"],["1999-02","ゼロ金利"],["2008-09","リーマン"],["2016-02","マイナス金利"],["2024-03","マイナス金利解除"]];
+function yfrac(d){const[a,b]=d.split('-').map(Number);return a+(b-1)/12;}
+function drawChart(){
+  const cv=$('rateChart'); const dpr=window.devicePixelRatio||1;
+  const W=cv.clientWidth||800, H=380; cv.width=W*dpr; cv.height=H*dpr;
+  const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
+  const padL=44,padR=14,padT=14,padB=28; const x0=padL,x1=W-padR,y0=padT,y1=H-padB;
+  const xmin=1989,xmax=2026.5,ymin=0,ymax=10;
+  const X=v=>x0+(v-xmin)/(xmax-xmin)*(x1-x0);
+  const Y=v=>y1-(v-ymin)/(ymax-ymin)*(y1-y0);
+  // grid Y
+  ctx.font='11px sans-serif'; ctx.textBaseline='middle';
+  for(let v=0;v<=10;v+=2){ ctx.strokeStyle='#eef1f6'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(x0,Y(v)); ctx.lineTo(x1,Y(v)); ctx.stroke();
+    ctx.fillStyle='#9aa6b2'; ctx.textAlign='right'; ctx.fillText(v+'%',x0-6,Y(v)); }
+  // grid X
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  for(let yr=1990;yr<=2026;yr+=6){ ctx.strokeStyle='#f4f6fa'; ctx.beginPath(); ctx.moveTo(X(yr),y0); ctx.lineTo(X(yr),y1); ctx.stroke();
+    ctx.fillStyle='#9aa6b2'; ctx.fillText(yr,X(yr),y1+5); }
+  // events
+  EVENTS.forEach(([d,lab])=>{ const x=X(yfrac(d)); ctx.strokeStyle='rgba(232,119,46,.35)'; ctx.setLineDash([4,4]); ctx.beginPath(); ctx.moveTo(x,y0); ctx.lineTo(x,y1); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='#c2640f'; ctx.font='bold 9px sans-serif'; ctx.save(); ctx.translate(x,y0+2); ctx.textAlign='left'; ctx.textBaseline='top'; ctx.fillText(lab,2,0); ctx.restore(); });
+  function line(data,color){ ctx.strokeStyle=color; ctx.lineWidth=2.6; ctx.lineJoin='round'; ctx.beginPath();
+    data.forEach(([d,v],i)=>{ const x=X(yfrac(d)),y=Y(v); i?ctx.lineTo(x,y):ctx.moveTo(x,y); }); ctx.stroke();
+    const last=data[data.length-1]; ctx.fillStyle=color; ctx.beginPath(); ctx.arc(X(yfrac(last[0])),Y(last[1]),3.5,0,7); ctx.fill(); }
+  line(housingFixed,'#2f53c8'); line(housingVariable,'#16b9b1');
+  $('nowVar').textContent=housingVariable[housingVariable.length-1][1].toFixed(2);
+  $('nowFix').textContent=housingFixed[housingFixed.length-1][1].toFixed(2);
+}
+window.addEventListener('resize',()=>{ if(slides[page]&&slides[page].querySelector('#rateChart'))drawChart(); if(penOn)resizeCanvas(); });
+
+/* ====== 手書き（ペン／マーカー／消しゴム・ページ別保存） ====== */
+const canvas=$('penLayer'), pctx=canvas.getContext('2d');
+let penOn=false, drawing=false, tool='pen', penColor='#e02424', penSize=4, penOnlyMode=true;
+let strokesByPage=slides.map(()=>[]); let redoByPage=slides.map(()=>[]); let current=null;
+function resizeCanvas(){ const dpr=window.devicePixelRatio||1; const w=canvas.clientWidth,h=canvas.clientHeight;
+  canvas.width=w*dpr; canvas.height=h*dpr; pctx.setTransform(dpr,0,0,dpr,0,0); redraw(); }
+function redraw(){ if(!canvas.clientWidth)return; pctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);
+  for(const st of strokesByPage[page]) drawStroke(st); }
+function drawStroke(st){ if(st.pts.length<1)return;
+  pctx.lineCap='round'; pctx.lineJoin='round';
+  if(st.tool==='eraser'){ pctx.globalCompositeOperation='destination-out'; pctx.globalAlpha=1; pctx.lineWidth=st.size*5; pctx.strokeStyle='#000'; }
+  else if(st.tool==='marker'){ pctx.globalCompositeOperation='source-over'; pctx.globalAlpha=0.32; pctx.lineWidth=st.size*4.5; pctx.strokeStyle=st.color; }
+  else { pctx.globalCompositeOperation='source-over'; pctx.globalAlpha=1; pctx.lineWidth=st.size; pctx.strokeStyle=st.color; }
+  pctx.beginPath(); pctx.moveTo(st.pts[0].x,st.pts[0].y);
+  for(let i=1;i<st.pts.length;i++)pctx.lineTo(st.pts[i].x,st.pts[i].y);
+  if(st.pts.length===1){ pctx.lineTo(st.pts[0].x+0.1,st.pts[0].y+0.1); }
+  pctx.stroke(); pctx.globalAlpha=1; pctx.globalCompositeOperation='source-over';
+}
+const posOf=e=>{const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
+let drawId=null;            // 今描いているポインタのID（これ以外＝手のひら等は無視）
+let redrawScheduled=false;  // 描画をフレーム単位にまとめる（速書きでも軽い）
+function scheduleRedraw(){ if(redrawScheduled)return; redrawScheduled=true; requestAnimationFrame(()=>{ redrawScheduled=false; redraw(); }); }
+// ※setPointerCapture/lostpointercaptureは使わない：iOSが捕捉外れ通知を約0.5秒遅らせ、
+//   同じpointerIDを使い回すApple Pencilだと「前の線の遅延通知」が次の線を消す（偶数本が消える）原因になるため。
+//   全画面キャンバスなので捕捉なしでもmoveは取れる。
+canvas.addEventListener('pointerdown',e=>{ if(!penOn)return;
+  if(penOnlyMode && e.pointerType==='touch')return;   // ペンのみモード：指/手のひらは無視
+  drawId=e.pointerId; drawing=true;
+  redoByPage[page]=[];   // 新しく書いたら「進む」履歴はリセット
+  current={tool,color:penColor,size:penSize,pts:[posOf(e)]}; strokesByPage[page].push(current); scheduleRedraw(); });
+canvas.addEventListener('pointermove',e=>{ if(!penOn||!drawing||e.pointerId!==drawId)return;
+  const evs=(e.getCoalescedEvents?e.getCoalescedEvents():null);   // 速書きで間引かれた途中の点も全部拾う
+  if(evs&&evs.length){ for(const ev of evs) current.pts.push(posOf(ev)); }
+  else current.pts.push(posOf(e));
+  scheduleRedraw(); });
+canvas.addEventListener('selectstart',e=>e.preventDefault());   // 文字選択の開始を禁止
+function endStroke(e){ if(!drawing)return; if(e&&e.pointerId!==undefined&&e.pointerId!==drawId)return;
+  if(current&&e&&e.type==='pointerup'){ current.pts.push(posOf(e)); }   // 離した位置も線に加える（速書きで点だけにならない）
+  drawId=null; drawing=false; current=null; redraw(); }
+canvas.addEventListener('pointerup',endStroke); canvas.addEventListener('pointercancel',endStroke);
+// iOS：手書き中はキャンバスのタッチ既定動作（スクロール・ダブルタップ拡大・コールアウト）を無効化。描画はpointerイベントで継続。
+['touchstart','touchmove','touchend'].forEach(function(t){
+  canvas.addEventListener(t,function(e){ if(penOn)e.preventDefault(); },{passive:false});
+});
+$('penBtn').onclick=()=>{ penOn=!penOn; canvas.classList.toggle('active',penOn); $('penTools').classList.toggle('show',penOn);
+  document.body.classList.toggle('penmode',penOn);
+  $('penBtn').classList.toggle('on',penOn); $('penBtn').textContent=penOn?'✏️ 書き込み中':'✏️ 手書き'; if(penOn)resizeCanvas(); };
+$('undoBtn').onclick=()=>{ if(strokesByPage[page].length){ redoByPage[page].push(strokesByPage[page].pop()); redraw(); } };
+$('redoBtn').onclick=()=>{ if(redoByPage[page].length){ strokesByPage[page].push(redoByPage[page].pop()); redraw(); } };
+$('clearBtn').onclick=()=>{ strokesByPage[page]=[]; redoByPage[page]=[]; redraw(); };
+$('penOnlyBtn').onclick=()=>{ penOnlyMode=!penOnlyMode; $('penOnlyBtn').classList.toggle('sel',penOnlyMode);
+  $('penOnlyBtn').textContent=penOnlyMode?'🖊 ペンのみ':'🖊 指もOK'; };
+document.querySelectorAll('.tool[data-tool]').forEach(b=>b.onclick=()=>{ tool=b.dataset.tool;
+  document.querySelectorAll('.tool[data-tool]').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); });
+document.querySelectorAll('.swatch').forEach(s=>s.onclick=()=>{ penColor=s.dataset.color;
+  document.querySelectorAll('.swatch').forEach(x=>x.classList.remove('sel')); s.classList.add('sel');
+  if(tool==='eraser'){tool='pen';document.querySelectorAll('.tool[data-tool]').forEach(x=>x.classList.toggle('sel',x.dataset.tool==='pen'));} });
+document.querySelectorAll('.size').forEach(s=>s.onclick=()=>{ penSize=parseFloat(s.dataset.size);
+  document.querySelectorAll('.size').forEach(x=>x.classList.remove('sel')); s.classList.add('sel'); });
+
+/* ====== 発表者ビュー（カンペ） ====== */
+// 論理ページ順: 0表紙 1控除 2金利タイプ 3変動ルール 4金利推移 5繰上げ
+const NOTES_DEFAULT={
+  0:'ご挨拶。今日は「無理のない返済・住宅ローン控除・賢い返し方（運用）」の順でお話しします、と流れを予告。お名前と日付を入力。',
+  1:'住宅ローン控除＝残高×0.7％が税金から戻る。ただし所得税が少ないと使い切れない→年収で上限が変わる点を強調。物件の省エネ性能・特例（子育て/若者夫婦）で限度額が変わる。ペアローンなら世帯で合算。',
+  2:'変動・固定・フラット35の違い。今は変動が低いが「金利上昇リスクを誰が持つか」が違う。実行金利＝店頭金利−優遇幅の仕組みを図で説明。',
+  3:'変動の3ルール（半年見直し／5年ルール／125％ルール）。返済額は急に増えないが、利息は消えない＝未払利息に注意。ルールを採用しないネット銀行もある。',
+  4:'金利推移グラフ。歴史的に今は低水準。ただし2024年マイナス金利解除後は上昇傾向。「過去」ではなく「これから」を見て選ぶ。',
+  5:'パート1でまず頭金・繰上げの「効果」（確実に利息が減る）を示す→納得感。パート2で「運用してから繰上げ」を提示。運用益が繰上げの利息節約を上回れば運用継続が有利。低金利＋控除中は特に。最後に運用リスク・生活防衛資金を必ず補足。'
+};
+let presOpen=false, timerStart=null, timerInt=null;
+function fmtTime(ms){const s=Math.max(0,Math.floor(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+function tickTimer(){ if(timerStart!=null) $('pvTimer').textContent=fmtTime(performance.now()-timerStart); }
+function loadNote(){ let v=null; try{v=localStorage.getItem('pvnote_'+page);}catch(e){} if(v==null)v=NOTES_DEFAULT[page]||''; $('pvNotes').value=v; }
+function updatePresenter(){
+  const slide=slides[page];
+  const eb=slide.querySelector('.eyebrow'), h=slide.querySelector('h1');
+  $('pvNow').textContent=(eb?eb.textContent+' ｜ ':'')+(h?h.textContent.replace(/\s+/g,' ').trim():'表紙');
+  const items=[...slide.querySelectorAll('.reveal')];
+  let nextTxt;
+  if(!slide.classList.contains('nostep') && step<items.length){
+    nextTxt=(items[step].textContent||'').replace(/\s+/g,' ').trim().slice(0,46)||'（次の項目）';
+  } else {
+    const np=slides[page+1];
+    nextTxt= np ? '▶ 次ページ：'+((np.querySelector('.eyebrow')?.textContent)||(np.querySelector('h1')?.textContent)||'').replace(/\s+/g,' ').trim() : '（最後のページです）';
+  }
+  $('pvNext').textContent=nextTxt;
+  loadNote();
+}
+$('pvNotes').addEventListener('input',()=>{ try{localStorage.setItem('pvnote_'+page,$('pvNotes').value);}catch(e){} });
+$('presBtn').onclick=()=>{ presOpen=!presOpen; $('presenter').classList.toggle('open',presOpen); $('presBtn').classList.toggle('on',presOpen);
+  if(presOpen){ if(timerStart==null)timerStart=performance.now(); clearInterval(timerInt); timerInt=setInterval(tickTimer,500); tickTimer(); updatePresenter(); }
+  else { clearInterval(timerInt); } };
+$('pvReset').onclick=()=>{ timerStart=performance.now(); tickTimer(); };
+$('pvPrev').onclick=back; $('pvNextBtn').onclick=advance;
+
+/* ====== 初期計算 ====== */
+calcTypes(); calcKoujo(); calcStep5();
+showPage(0);
+
+/* ====== iPad：ダブルタップ拡大を無効化（touch-actionの補強） ====== */
+let _lastTap=0;
+document.addEventListener('touchend',function(e){
+  // 手書き中・キャンバス・入力欄は対象外（ペン操作を邪魔しない）
+  if(penOn || (e.target && (e.target.id==='penLayer' || (e.target.closest && e.target.closest('input,textarea,select')))))return;
+  const now=Date.now();
+  if(now-_lastTap<=350){ e.preventDefault(); }   // 350ms以内の2回目タップ＝ダブルタップ→拡大を止める
+  _lastTap=now;
+},{passive:false});
+</script>
+</body>
+</html>
