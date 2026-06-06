@@ -157,7 +157,11 @@
   .note b{color:var(--blue-d);}
   .note.warn{border-left-color:var(--warn);}
   .note.blue{border-left-color:var(--blue);}
-  .rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:13px;}
+  .rules{display:grid;grid-template-columns:1fr;gap:13px;}   /* ルールは縦並び */
+  .step3-cols{display:flex;gap:18px;align-items:stretch;flex-wrap:wrap;margin-top:4px;}
+  .step3-left{flex:1 1 380px;min-width:300px;max-width:620px;}
+  .step3-right{flex:1 1 320px;min-width:260px;min-height:58vh;border:2px dashed var(--line);border-radius:14px;display:flex;align-items:flex-start;justify-content:center;padding:14px;}
+  .step3-right .handnote{color:#b6c0cc;font-weight:800;font-size:14px;}
   .rule{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;}
   .rule .num{display:inline-flex;width:30px;height:30px;border-radius:50%;background:var(--blue);color:#fff;font-weight:800;align-items:center;justify-content:center;margin-bottom:9px;font-size:15px;}
   .rule h3{margin:0 0 6px;font-size:16px;}
@@ -362,13 +366,18 @@
       <div class="eyebrow reveal">STEP 3 ｜ 変動金利の仕組み</div>
       <h1 class="slide-title reveal">変動金利の3つのルール</h1>
       <p class="subtitle reveal">金利が上がっても、返済額はすぐには変わらない仕組みがあります</p>
-      <div class="rules reveal">
-        <div class="rule"><span class="num">1</span><h3>半年に一度、金利の見直し</h3><p>適用金利は<b>年2回（4月・10月）</b>見直されます。市場金利が動くと、適用金利もこのタイミングで変わります。</p></div>
-        <div class="rule"><span class="num">2</span><h3>5年に一度、返済額の見直し</h3><p>金利が変わっても、<b>毎月の返済額は5年間は変わりません</b>（5年ルール）。その間は元金と利息の<b>内訳</b>だけが変化します。</p></div>
-        <div class="rule"><span class="num">3</span><h3>125％ルール</h3><p>5年ごとに返済額が見直される際も、<b>前の返済額の125％（1.25倍）まで</b>しか上がりません。急な負担増を抑える仕組みです。</p></div>
+      <div class="step3-cols">
+        <div class="step3-left">
+          <div class="rules reveal">
+            <div class="rule"><span class="num">1</span><h3>半年に一度、金利の見直し</h3><p>適用金利は<b>年2回（4月・10月）</b>見直されます。市場金利が動くと、適用金利もこのタイミングで変わります。</p></div>
+            <div class="rule"><span class="num">2</span><h3>5年に一度、返済額の見直し</h3><p>金利が変わっても、<b>毎月の返済額は5年間は変わりません</b>（5年ルール）。その間は元金と利息の<b>内訳</b>だけが変化します。</p></div>
+            <div class="rule"><span class="num">3</span><h3>125％ルール</h3><p>5年ごとに返済額が見直される際も、<b>前の返済額の125％（1.25倍）まで</b>しか上がりません。急な負担増を抑える仕組みです。</p></div>
+          </div>
+          <div class="note warn reveal"><b>注意：</b>返済額が抑えられても、発生した利息が消えるわけではありません。金利が大きく上がると、返済額に収まりきらない<b>「未払利息」</b>が生じることがあります。</div>
+          <div class="note reveal"><b>銀行によってルールが違います。</b>ネット銀行を中心に<b>「5年ルール・125％ルールを採用していない」</b>銀行もあります。その場合、金利が上がると<b>返済額がすぐに・上限なく</b>増えるため、どちらの銀行かを必ず確認しましょう。</div>
+        </div>
+        <div class="step3-right reveal"></div>
       </div>
-      <div class="note warn reveal"><b>注意：</b>返済額が抑えられても、発生した利息が消えるわけではありません。金利が大きく上がると、返済額に収まりきらない<b>「未払利息」</b>が生じることがあります。</div>
-      <div class="note reveal"><b>銀行によってルールが違います。</b>ネット銀行を中心に<b>「5年ルール・125％ルールを採用していない」</b>銀行もあります。その場合、金利が上がると<b>返済額がすぐに・上限なく</b>増えるため、どちらの銀行かを必ず確認しましょう。</div>
     </div>
   </section>
 
@@ -539,9 +548,13 @@ window.addEventListener('keydown',e=>{
   if(e.key==='PageUp'||e.key==='ArrowUp'){e.preventDefault();prevPage();}
 });
 // 画面タップでもスムーズに送る（入力欄・ボタン・ドロップダウン・手書き中は除く）
+// 入力欄を離れた直後（キーボードを閉じるタップ）はページ送りしない
+let suppressAdvanceUntil=0;
+document.addEventListener('focusout',e=>{ if(e.target&&e.target.matches&&e.target.matches('input,textarea,select')) suppressAdvanceUntil=performance.now()+450; });
 $('stage').addEventListener('click',e=>{
   if(penOn)return;
   if(e.target.closest('input,select,button,textarea,label,a,summary,details'))return;
+  if(performance.now()<suppressAdvanceUntil){ suppressAdvanceUntil=0; return; }
   advance();
 });
 
@@ -561,25 +574,28 @@ function balanceAfter(principalYen, ratePct, years, afterYears){
 
 
 /* ====== ページ3：種類別 ＋ 実行金利 ====== */
-function calcTypes(){
-  const P=(parseFloat($('t_loan').value)||0)*10000; const y=parseFloat($('t_years').value)||0;
-  const n=y*12;
-  const base=parseFloat($('in_base').value)||0, pref=parseFloat($('in_pref').value)||0;
-  const real=Math.max(0,base-pref);
-  const tr=v=>(Math.round(v*1000)/1000).toString();
-  $('f_base').textContent=tr(base); $('f_pref').textContent=tr(pref); $('f_real').textContent=tr(real);
-  // 実行金利を変動の入力欄に反映
-  $('t_var').value=Math.round(real*1000)/1000;
-  // 毎月返済額・総返済額（総返済額は万円）
-  const mFlat=monthlyPay(P,parseFloat($('t_flat').value),y);
-  const mFix=monthlyPay(P,parseFloat($('t_fix').value),y);
-  const mVar=monthlyPay(P,real,y);
+// 毎月返済額・総返済額（3タイプとも入力欄の金利をそのまま使う＝直接変更OK）
+function calcPayments(){
+  const P=(parseFloat($('t_loan').value)||0)*10000, y=parseFloat($('t_years').value)||0, n=y*12;
+  const mFlat=monthlyPay(P,parseFloat($('t_flat').value)||0,y);
+  const mFix =monthlyPay(P,parseFloat($('t_fix').value)||0,y);
+  const mVar =monthlyPay(P,parseFloat($('t_var').value)||0,y);
   setNum('pay_flat',mFlat); setNum('total_flat',mFlat*n/10000);
   setNum('pay_fix',mFix);   setNum('total_fix',mFix*n/10000);
   setNum('pay_var',mVar);   setNum('total_var',mVar*n/10000);
 }
-['t_loan','t_years','t_var','t_flat','t_fix'].forEach(id=>$(id).addEventListener('input',calcTypes));
-['in_base','in_pref'].forEach(id=>$(id).addEventListener('input',calcTypes));
+// 店頭金利−優遇＝実行金利。変動の入力欄に反映（その後の手入力での上書きも可）
+function calcExecRate(){
+  const base=parseFloat($('in_base').value)||0, pref=parseFloat($('in_pref').value)||0;
+  const real=Math.max(0,base-pref);
+  const tr=v=>(Math.round(v*1000)/1000).toString();
+  $('f_base').textContent=tr(base); $('f_pref').textContent=tr(pref); $('f_real').textContent=tr(real);
+  $('t_var').value=Math.round(real*1000)/1000;
+  calcPayments();
+}
+function calcTypes(){ calcExecRate(); }   // 初期化用
+['t_loan','t_years','t_var','t_flat','t_fix'].forEach(id=>$(id).addEventListener('input',calcPayments));
+['in_base','in_pref'].forEach(id=>$(id).addEventListener('input',calcExecRate));
 
 /* ====== ページ6：住宅ローン控除 ======
    借入限度額マトリクス（万円）— 税制改正で変わる場合はここを編集
