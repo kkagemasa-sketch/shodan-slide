@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>償還表 3シナリオ比較 見本</title>
+<style>
+  :root{
+    --blue:#2f53c8; --blue-d:#21408f;
+    --teal:#16b9b1; --teal-d:#0f9c95;
+    --green:#1ba34a; --green-d:#15833b;
+    --ink:#1b2733; --muted:#5d6b7a;
+    --line:#e4e9f0; --bg:#eef2f8; --card:#ffffff;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,system-ui,sans-serif;
+    color:var(--ink);background:var(--bg);padding:24px 28px 60px;}
+  .wrap{max-width:1180px;margin:0 auto;}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--blue);font-weight:800;font-size:13px;letter-spacing:.08em;margin-bottom:6px;}
+  .eyebrow::before{content:"";width:22px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--blue),var(--teal));}
+  h1{font-size:clamp(20px,3vw,28px);margin:0 0 4px;font-weight:800;}
+  .subtitle{color:var(--muted);font-size:14px;margin:0 0 16px;}
+
+  .inputs{display:flex;flex-wrap:wrap;gap:10px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:8px;align-items:flex-end;}
+  .grp-label{flex-basis:100%;font-size:12px;font-weight:800;color:var(--muted);margin:2px 0 -2px;}
+  .grp-label.n{color:var(--ink);} .grp-label.d{color:var(--blue-d);} .grp-label.p{color:var(--teal-d);}
+  .field{width:132px;}
+  .field label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:4px;}
+  .field .ui{position:relative;}
+  .field input{width:100%;font-size:17px;padding:8px 28px 8px 11px;border:2px solid var(--line);border-radius:10px;font-weight:800;font-family:inherit;color:var(--ink);}
+  .field input:focus{outline:none;border-color:var(--blue);}
+  .field .unit{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;font-weight:700;}
+  .hint{font-size:12.5px;color:var(--muted);font-weight:700;margin:0 2px 16px;}
+  .ratebox{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:8px;}
+  .ratebox-head{font-size:12px;font-weight:800;color:var(--muted);margin-bottom:10px;}
+  .step-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:14px;font-weight:700;color:var(--ink);flex-wrap:wrap;}
+  .step-row .tag{font-size:11.5px;font-weight:800;color:#fff;background:var(--blue);border-radius:999px;padding:3px 9px;min-width:54px;text-align:center;}
+  .step-row input{width:80px;font-size:16px;padding:6px 9px;border:2px solid var(--line);border-radius:8px;font-weight:800;font-family:inherit;text-align:right;color:var(--ink);}
+  .step-row input:focus{outline:none;border-color:var(--blue);}
+  .step-row .del{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:8px;width:28px;height:28px;cursor:pointer;font-weight:800;line-height:1;}
+  .addbtn{border:1px dashed var(--blue);background:#f4f7ff;color:var(--blue);font-weight:800;font-size:13px;padding:7px 14px;border-radius:9px;cursor:pointer;font-family:inherit;margin-top:2px;}
+  table.amort tr.rate-up td{background:#fff4f4;}
+  table.amort tr.rate-up td.year{color:#c23b40;box-shadow:inset 3px 0 0 #e1565b;}
+  .rate-badge{display:inline-block;margin-left:4px;font-size:10px;font-weight:800;color:#fff;background:#e1565b;border-radius:999px;padding:0 6px;}
+  .pre-badge{display:inline-block;margin-left:4px;font-size:10px;font-weight:800;color:#fff;background:#ef8f1c;border-radius:999px;padding:0 6px;}
+
+  .cmp{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:18px;}
+  .cmp th,.cmp td{padding:10px 14px;text-align:right;font-size:14px;border-bottom:1px solid #f0f3f8;}
+  .cmp thead th{font-size:14px;font-weight:800;text-align:center;border-bottom:2px solid var(--line);}
+  .cmp thead th.c-n{background:#f4f6fb;color:var(--ink);}
+  .cmp thead th.c-d{background:#eef2ff;color:var(--blue-d);}
+  .cmp thead th.c-p{background:#e8f8f5;color:var(--teal-d);}
+  .cmp tbody th{text-align:left;font-weight:700;color:var(--muted);font-size:13px;}
+  .cmp .big{font-size:17px;font-weight:800;}
+  .cmp .delta{font-size:12px;font-weight:800;}
+  .cmp td.d .delta{color:var(--blue-d);} .cmp td.p .delta{color:var(--teal-d);}
+
+  .tablewrap{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:auto;max-height:58vh;}
+  table.amort{border-collapse:collapse;width:100%;font-size:12.5px;white-space:nowrap;user-select:none;}
+  table.amort td.sel{background:#bcd4ff !important;}
+  .selbar{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#1b2733;color:#fff;border-radius:12px;padding:10px 18px;display:none;gap:22px;align-items:center;font-size:14px;font-weight:700;box-shadow:0 6px 22px rgba(0,0,0,.28);z-index:50;}
+  .selbar b{font-size:17px;color:#7fe3da;margin-left:5px;}
+  .selbar .x{cursor:pointer;color:#9fb0c0;font-weight:800;font-size:18px;margin-left:4px;}
+  table.amort th,table.amort td{padding:6px 10px;text-align:right;border-bottom:1px solid #f0f3f8;font-variant-numeric:tabular-nums;}
+  table.amort thead tr.grp th{position:sticky;top:0;text-align:center;font-weight:800;font-size:13px;padding:9px 10px;border-bottom:2px solid var(--line);background:#fff;z-index:2;}
+  table.amort thead tr.grp th.c-n{background:#f4f6fb;}
+  table.amort thead tr.grp th.c-d{background:#eef2ff;color:var(--blue-d);}
+  table.amort thead tr.grp th.c-p{background:#e8f8f5;color:var(--teal-d);}
+  table.amort thead tr.sub th{position:sticky;top:38px;background:#fafbfe;color:var(--muted);font-weight:800;font-size:11.5px;border-bottom:2px solid var(--line);z-index:2;}
+  table.amort td.year,table.amort th.year{position:sticky;left:0;background:#fff;text-align:center;font-weight:700;color:var(--muted);z-index:3;border-right:2px solid var(--line);}
+  table.amort thead th.year{z-index:4;}
+  .g-d{background:#f7f9ff;} .g-p{background:#f4fbf9;}
+  table.amort td.prc, table.amort th.prc{background:#fff7d6;}      /* 元金返済を黄色強調 */
+  td.int{color:var(--teal-d);}
+  table.amort td.pre-cell{background:#ffe2bd !important;}   /* 繰上げ年は繰上げ列のみオレンジ */
+  table.amort tfoot td{position:sticky;bottom:0;background:#f3f6fb;font-weight:800;border-top:2px solid var(--line);}
+  @keyframes fadeCol{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+  .appear{animation:fadeCol .45s ease;}
+  .banner{background:#fff3cd;border:1px dashed #d9b85c;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;color:#7a5b10;margin-bottom:16px;}
+  .legendline{font-size:12px;color:var(--muted);font-weight:700;margin:8px 2px 0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="banner">通常 → 頭金 → 繰り上げ返済 の順に入力すると、その列が順に現れて比較できます。</div>
+
+  <div class="eyebrow">住宅ローン 償還表（3シナリオ比較）</div>
+  <h1>通常 ／ 頭金あり ／ 繰り上げ返済あり の比較</h1>
+  <p class="subtitle">まず①通常の条件を入れ、②頭金、③繰り上げ返済を入れると、順に列が増えます。</p>
+
+  <div class="inputs">
+    <div class="grp-label n">① 通常ローンの条件</div>
+    <div class="field"><label>借入額</label><div class="ui"><input id="loan" type="number" value="3500"><span class="unit">万円</span></div></div>
+    <div class="field"><label>返済期間</label><div class="ui"><input id="years" type="number" value="35"><span class="unit">年</span></div></div>
+  </div>
+
+  <div class="ratebox">
+    <div class="ratebox-head">金利（段階的に上げられます／3シナリオ共通）</div>
+    <div id="rateSteps"></div>
+    <button id="addStep" class="addbtn">＋ 金利の段階を追加</button>
+  </div>
+
+  <div class="inputs">
+    <div class="grp-label d">② 頭金（入れると2列目が出ます）</div>
+    <div class="field"><label>頭金</label><div class="ui"><input id="down" type="number" value="0"><span class="unit">万円</span></div></div>
+    <div class="grp-label p">③ 繰り上げ返済（入れると3列目が出ます）</div>
+    <div class="field"><label>繰上げ額</label><div class="ui"><input id="prepay" type="number" value="0"><span class="unit">万円</span></div></div>
+    <div class="field"><label>繰上げ時期</label><div class="ui"><input id="ptime" type="number" value="10"><span class="unit">年後</span></div></div>
+  </div>
+  <div class="hint" id="hint">いまは「通常ローン」だけ表示中。頭金・繰り上げ返済を入力すると列が増えます。</div>
+
+  <table class="cmp" id="cmp"></table>
+  <div class="legendline">※金額は万円・円。頭金あり＝借入が減る（返済額軽減型・期間同じ）／繰上げあり＝期間短縮型（毎月返済は同じ・早く完済）。元利均等・概算。</div>
+
+  <div class="legendline">数字をドラッグで範囲選択すると、下に「合計・平均・個数」が出ます（マウス／タッチペン）。</div>
+  <div class="tablewrap" style="margin-top:8px;">
+    <table class="amort" id="amort"></table>
+  </div>
+</div>
+
+<div class="selbar" id="selbar"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n).toLocaleString('ja-JP');
+function pay(P,r,n){ if(P<=0||n<=0)return 0; if(!r)return P/n; return P*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1); }
+function ym(months){ months=Math.round(months); const y=Math.floor(months/12), mo=months%12; return (y?y+'年':'')+(mo?mo+'ヶ月':(y?'':'0ヶ月')); }
+
+let steps=[{from:1,rate:1.125}];   // 金利の段階（from年目から rate%）
+function rateForYear(yr){ const ss=[...steps].sort((a,b)=>a.from-b.from); let rt=ss[0].rate; for(const s of ss){ if(yr>=s.from) rt=s.rate; } return rt; }
+
+// startBal=実際の残高（表に出す）／refStart=返済額を決める基準残高（期間短縮は元の借入）
+function amort(startBal, refStart, Y, lumpYear, lumpAmt){
+  const totalM=Y*12; let actBal=startBal, refBal=refStart, m=0, lastRate=null, elapsed=0, payoffM=0;
+  const byYear={}; let totPr=0,totInt=0,last=0,firstM=0,lastM=0;
+  for(let k=1;k<=Y && actBal>0.5;k++){
+    const rate=rateForYear(k), r=rate/100/12;
+    if(rate!==lastRate){ m=pay(refBal, r, totalM-elapsed); lastRate=rate; }    // 金利変更時に残り期間で再計算
+    let pr=0,intr=0;
+    for(let mo=0;mo<12 && actBal>0.5;mo++){
+      const itR=refBal*r; refBal=Math.max(0, refBal-(m-itR));                   // 基準残高（返済額決め用）
+      const it=actBal*r; let pp=m-it; if(pp>actBal)pp=actBal; actBal-=pp; if(actBal<0)actBal=0;
+      pr+=pp; intr+=it; elapsed++; if(actBal<=0.5 && !payoffM)payoffM=elapsed;
+    }
+    let prepaid=false;
+    if(lumpYear && k===lumpYear && lumpAmt>0 && actBal>0){ const q=Math.min(lumpAmt,actBal); actBal-=q; pr+=q; prepaid=true; if(actBal<=0.5 && !payoffM)payoffM=k*12; }
+    if(k===1)firstM=m; lastM=m;
+    totPr+=pr; totInt+=intr; last=k;
+    byYear[k]={pay:pr+intr, pr, intr, bal:actBal, prepaid};
+  }
+  if(!payoffM)payoffM=elapsed;
+  return {byYear, totPr, totInt, monthly:firstM, monthlyLast:lastM, payoff:last, payoffM};
+}
+
+function renderSteps(){
+  const box=$('rateSteps'); box.innerHTML='';
+  steps.forEach((s,idx)=>{
+    const row=document.createElement('div'); row.className='step-row';
+    if(idx===0){ row.innerHTML=`<span class="tag">当初</span><span>1年目から</span><input class="rt" type="number" step="0.01" value="${s.rate}"> ％`; }
+    else { row.innerHTML=`<span class="tag">${idx+1}段階目</span><input class="yr" type="number" value="${s.from}"> 年目から <input class="rt" type="number" step="0.01" value="${s.rate}"> ％ <button class="del" title="削除">×</button>`; }
+    box.appendChild(row);
+  });
+  box.querySelectorAll('.step-row').forEach((row,idx)=>{
+    const rt=row.querySelector('.rt'), yr=row.querySelector('.yr'), del=row.querySelector('.del');
+    if(rt) rt.addEventListener('input',()=>{ steps[idx].rate=+rt.value||0; calc(); });
+    if(yr) yr.addEventListener('input',()=>{ steps[idx].from=Math.max(2,+yr.value||2); calc(); });
+    if(del) del.addEventListener('click',()=>{ steps.splice(idx,1); renderSteps(); calc(); });
+  });
+}
+
+let prevKeys='';
+
+function calc(){
+  const P=(+$('loan').value||0)*1e4, Y=+$('years').value||35;
+  const D=Math.min((+$('down').value||0)*1e4, P);
+  const Q=(+$('prepay').value||0)*1e4, T=+$('ptime').value||0;
+
+  const scn=[];
+  scn.push({key:'n',cls:'n',label:'通常ローン',sub:'', res:amort(P,P,Y,0,0)});
+  if(D>0) scn.push({key:'d',cls:'d',label:'頭金あり',sub:fmt(D/1e4)+'万円', res:amort(P-D,P-D,Y,0,0)});
+  if(Q>0 && T>0) scn.push({key:'p',cls:'p',label:'繰り上げあり',sub:fmt(T)+'年目に'+fmt(Q/1e4)+'万円', res:amort(P,P,Y,T,Q)});
+
+  const keys=scn.map(s=>s.key).join(',');
+  const newSet={}; scn.forEach(s=>{ if(prevKeys.indexOf(s.key)<0) newSet[s.key]=1; });
+  const baseInt=scn[0].res.totInt;
+  const ap=s=>newSet[s.key]?' appear':'';
+
+  // ===== 上部サマリー =====
+  let head='<thead><tr><th style="text-align:left">比較項目</th>';
+  scn.forEach(s=>{ head+=`<th class="c-${s.cls}${ap(s)}">${s.label}${s.sub?'<br><small>'+s.sub+'</small>':''}</th>`; });
+  head+='</tr></thead>';
+  const row=(label,fn)=>{ let h=`<tr><th>${label}</th>`; scn.forEach(s=>{ h+=`<td class="${s.cls}${ap(s)}">${fn(s)}</td>`; }); return h+'</tr>'; };
+  let body='<tbody>';
+  body+=row('総返済額',s=>`<span class="big">${fmt((s.res.totPr+s.res.totInt)/1e4)}</span>万`);
+  body+=row('総利息',s=>{ let v=`<span class="big">${fmt(s.res.totInt/1e4)}</span>万`; if(s.key!=='n') v+=`<br><span class="delta">通常より −${fmt((baseInt-s.res.totInt)/1e4)}万</span>`; return v; });
+  body+=row('毎月返済額',s=>`${fmt(s.res.monthly)}円`);
+  body+=row('完済',s=>{ const baseM=scn[0].res.payoffM, pm=s.res.payoffM; let v=ym(pm); if(s.key!=='n' && pm<baseM-0.5) v+=`<br><span class="delta">${ym(baseM-pm)}短縮</span>`; return v; });
+  body+='</tbody>';
+  $('cmp').innerHTML=head+body;
+
+  // ===== 償還表（列を並べる） =====
+  let grp='<thead><tr class="grp"><th class="year" rowspan="2">年次</th>';
+  scn.forEach(s=>{ grp+=`<th class="c-${s.cls}${ap(s)}" colspan="4">${s.label}</th>`; });
+  grp+='</tr><tr class="sub">';
+  scn.forEach(s=>{ const a=ap(s).trim(); grp+=`<th class="${a}">返済合計</th><th class="prc ${a}">元金返済</th><th class="${a}">利息</th><th class="${a}">元金残額</th>`; });
+  grp+='</tr></thead>';
+
+  // 金利を上げた年（2段階目以降の開始年）
+  const stepYears={};
+  [...steps].sort((a,b)=>a.from-b.from).forEach((s,idx)=>{ if(idx>0) stepYears[s.from]=s.rate; });
+
+  let tb='<tbody>';
+  for(let k=1;k<=Y;k++){
+    const up=stepYears[k];                                  // 金利上昇年（全シナリオ共通）
+    const cls=(up!==undefined?'rate-up':'');
+    const badge=up!==undefined?`<span class="rate-badge">↑${up}%</span>`:'';
+    tb+=`<tr class="${cls}"><td class="year">${k}年目${badge}</td>`;
+    scn.forEach(s=>{ const o=s.res.byYear[k], gc=s.cls!=='n'?' g-'+s.cls:'';
+      const pre=o&&o.prepaid, pc=pre?' pre-cell':'', preB=pre?'<span class="pre-badge">繰上</span>':'';
+      tb+= o ? `<td class="${gc}${pc}">${fmt(o.pay)}${preB}</td><td class="prc${gc}${pc}">${fmt(o.pr)}</td><td class="int${gc}${pc}">${fmt(o.intr)}</td><td class="${gc}${pc}">${fmt(o.bal)}</td>`
+             : `<td class="${gc}">—</td><td class="prc${gc}">—</td><td class="${gc}">—</td><td class="${gc}">—</td>`; });
+    tb+='</tr>';
+  }
+  tb+='</tbody>';
+  let tf='<tfoot><tr><td class="year">合計</td>';
+  scn.forEach(s=>{ const gc=s.cls!=='n'?' g-'+s.cls:''; tf+=`<td class="${gc}">${fmt(s.res.totPr+s.res.totInt)}</td><td class="prc${gc}">${fmt(s.res.totPr)}</td><td class="int${gc}">${fmt(s.res.totInt)}</td><td class="${gc}">—</td>`; });
+  tf+='</tr></tfoot>';
+  $('amort').innerHTML=grp+tb+tf;
+
+  // ヒント
+  const names=scn.map(s=>s.label).join('／');
+  $('hint').textContent=(scn.length<3)
+    ? `表示中：${names}。`+(scn.length===1?'頭金を入れると2列目、':'')+'繰り上げ返済を入れると次の列が出ます。'
+    : `表示中：${names}（3シナリオ比較中）。`;
+
+  prevKeys=keys;
+}
+$('addStep').addEventListener('click',()=>{ const last=steps[steps.length-1]; steps.push({from:(last.from||1)+10, rate:Math.round((last.rate+0.5)*1000)/1000}); steps.sort((a,b)=>a.from-b.from); renderSteps(); calc(); });
+// 数字入力欄：フォーカス時に全選択（タップで上書き入力できるように）
+document.addEventListener('focusin',e=>{ const t=e.target; if(t&&t.matches&&t.matches('input[type=number]')){ setTimeout(()=>{try{t.select();}catch(_){}},0); } });
+['loan','years','down','prepay','ptime'].forEach(id=>$(id).addEventListener('input',calc));
+renderSteps(); calc();
+
+/* ===== ドラッグで範囲選択 → 合計・平均・個数 ===== */
+(function(){
+  const table=$('amort'), bar=$('selbar');
+  let selecting=false, anchor=null;
+  function pos(td){ const tr=td.parentElement; const body=table.tBodies[0]; if(!body||tr.parentElement!==body) return null; return {r:[...body.rows].indexOf(tr), c:td.cellIndex}; }
+  function clearSel(){ table.querySelectorAll('td.sel').forEach(td=>td.classList.remove('sel')); }
+  function apply(a,b){
+    clearSel();
+    const body=table.tBodies[0]; if(!body) return;
+    const r1=Math.min(a.r,b.r), r2=Math.max(a.r,b.r), c1=Math.min(a.c,b.c), c2=Math.max(a.c,b.c);
+    let sum=0,cnt=0;
+    for(let r=r1;r<=r2;r++){ const row=body.rows[r]; if(!row)continue;
+      for(let c=c1;c<=c2;c++){ const td=row.cells[c]; if(!td)continue; td.classList.add('sel');
+        if(td.classList.contains('year'))continue;
+        const v=parseFloat(td.textContent.replace(/[^0-9.\-]/g,'')); if(!isNaN(v)){ sum+=v; cnt++; }
+      } }
+    if(cnt>0){ bar.style.display='flex';
+      bar.innerHTML=`<span>合計 <b>${fmt(sum)}</b> 円（約${fmt(sum/1e4)}万）</span><span>平均 <b>${fmt(sum/cnt)}</b></span><span>個数 <b>${cnt}</b></span><span class="x" id="selx">×</span>`;
+      $('selx').addEventListener('click',()=>{ clearSel(); bar.style.display='none'; });
+    } else { bar.style.display='none'; }
+  }
+  table.addEventListener('pointerdown',e=>{ if(e.pointerType==='touch')return; const td=e.target.closest('td'); if(!td)return; const p=pos(td); if(!p)return; selecting=true; anchor=p; apply(anchor,anchor); e.preventDefault(); });
+  table.addEventListener('pointermove',e=>{ if(!selecting)return; const td=e.target.closest('td'); if(!td)return; const p=pos(td); if(!p)return; apply(anchor,p); });
+  document.addEventListener('pointerup',()=>{ selecting=false; });
+})();
+</script>
+</body>
+</html>

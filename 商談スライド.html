@@ -379,28 +379,28 @@
       <h1 class="slide-title reveal">住宅ローン控除の概算</h1>
       <p class="subtitle reveal">「残高×0.7％」と「ご年収から計算した上限」、<b>小さい方</b>が実際に戻る額です</p>
 
+      <div class="checkline reveal" style="margin-bottom:10px;"><input type="checkbox" id="k_pair"><label for="k_pair"><b>ペアローン</b>（夫婦2人で借入）で計算する</label><span class="pill">チェックなし＝単独ローン</span></div>
+
       <div class="row reveal">
-        <div class="field"><label>入居年</label><select id="k_year"><option value="2024">2024年</option><option value="2025" selected>2025年</option><option value="2026">2026年</option></select></div>
+        <div class="field"><label>入居年</label><select id="k_year"><option value="2024">2024年</option><option value="2025">2025年</option><option value="2026" selected>2026年</option><option value="2027">2027年</option><option value="2028">2028年</option><option value="2029">2029年</option><option value="2030">2030年</option></select></div>
         <div class="field"><label>住宅の省エネ性能</label><select id="k_perf">
           <option value="chouki">長期優良・低炭素住宅</option>
           <option value="zeh">ZEH水準省エネ住宅</option>
           <option value="shoene" selected>省エネ基準適合住宅</option>
           <option value="ippan">一般住宅（その他）</option></select></div>
+        <div class="field"><label>借入額（年末残高の目安）</label><div class="unit-input"><input id="k_loanA" type="number" value="3500"><span class="unit">万円</span></div></div>
+        <div class="field"><label>ご年収</label><div class="unit-input"><input id="k_incomeA" type="number" value="500"><span class="unit">万円</span></div></div>
         <div class="field"><label>返済期間</label><div class="unit-input"><input id="k_years" type="number" value="35"><span class="unit">年</span></div></div>
         <div class="field"><label>金利（年）</label><div class="unit-input"><input id="k_rate" type="number" step="0.01" value="1.0"><span class="unit">％</span></div></div>
       </div>
       <div class="checkline reveal"><input type="checkbox" id="k_tokurei"><label for="k_tokurei">特例対象個人（子育て世帯／夫婦どちらかが40歳未満の若者夫婦世帯）に該当する</label>
         <span class="pill">借入限度額が上乗せ</span></div>
 
-      <div class="note blue reveal" style="margin-top:14px;">借入限度額：<b><span id="k_limit">3,000</span>万円</b>（入居年・性能・特例で自動判定）　／　控除率0.7％　／　控除期間 <span id="k_period">13</span>年</div>
+      <div class="note blue reveal" style="margin-top:14px;">借入限度額：<b><span id="k_limit">3,000</span>万円</b>（入居年・性能・特例で自動判定）　／　控除率0.7％　／　控除期間 <span id="k_period">13</span>年<span id="k_provisional" style="display:none;color:#c23b40;font-weight:800;"><br>※2027年以降は税制が未確定のため、暫定で2026年と同額を表示しています。</span></div>
 
       <!-- 本人 -->
       <div class="reveal" style="margin-top:6px;">
-        <div class="barlabel" style="font-size:15px;color:var(--ink);">本人</div>
-        <div class="row">
-          <div class="field"><label>借入額（年末残高の目安）</label><div class="unit-input"><input id="k_loanA" type="number" value="3500"><span class="unit">万円</span></div></div>
-          <div class="field"><label>ご年収</label><div class="unit-input"><input id="k_incomeA" type="number" value="500"><span class="unit">万円</span></div></div>
-        </div>
+        <div class="barlabel" style="font-size:15px;color:var(--ink);">本人（戻る額）</div>
         <div class="result-grid" style="margin-top:4px;">
           <div class="card"><div class="k">① 残高×0.7％</div><div class="v" style="color:var(--teal-d)"><span id="kA_rule">－</span><small>万円/年</small></div></div>
           <div class="card"><div class="k">② 年収からの上限</div><div class="v" style="color:var(--blue-d)"><span id="kA_income">－</span><small>万円/年</small></div>
@@ -414,7 +414,6 @@
       </div>
 
       <!-- ペアローン -->
-      <div class="checkline reveal" style="margin-top:8px;"><input type="checkbox" id="k_pair"><label for="k_pair">ペアローン（配偶者も借入）で計算する</label></div>
       <div class="reveal" id="pairBlock" style="display:none;">
         <div class="barlabel" style="font-size:15px;color:var(--ink);">配偶者</div>
         <div class="row">
@@ -441,62 +440,8 @@
   <section class="slide" data-page="6">
     <div class="slide-inner">
       <div class="eyebrow reveal">STEP 5 ｜ 頭金と繰上げ返済の考え方</div>
-      <h1 class="slide-title reveal">頭金・繰上げ返済の効果</h1>
-      <p class="subtitle reveal">まず「頭金・繰上げの効果」、つぎに「運用してから繰上げ」を比べます</p>
-
-      <div class="row reveal" style="max-width:640px;">
-        <div class="field"><label>借入額</label><div class="unit-input"><input id="z_loan" type="number" value="3500"><span class="unit">万円</span></div></div>
-        <div class="field"><label>金利（年）</label><div class="unit-input"><input id="z_rate" type="number" step="0.01" value="1.125"><span class="unit">％</span></div></div>
-        <div class="field"><label>返済期間</label><div class="unit-input"><input id="z_years" type="number" value="35"><span class="unit">年</span></div></div>
-      </div>
-      <div class="paylist reveal">
-        <div class="pl-row"><span class="pl-k">返済月額</span><span class="pl-v"><span id="z_monthly">－</span><small>円/月</small></span></div>
-        <div class="pl-row"><span class="pl-k">返済元本（借入額）</span><span class="pl-v"><span id="z_principal">－</span><small>万円</small></span></div>
-        <div class="pl-row"><span class="pl-k">返済利息</span><span class="pl-v" style="color:var(--teal-d)"><span id="z_interest">－</span><small>万円</small></span></div>
-        <div class="pl-row total"><span class="pl-k">総返済額（元本＋利息）</span><span class="pl-v"><span id="z_totalpay">－</span><small>万円</small></span></div>
-      </div>
-
-      <!-- パート1：効果 -->
-      <div class="eyebrow reveal" style="margin-top:22px;">パート1 ｜ 頭金・繰上げ返済の「効果」</div>
-      <div class="row reveal" style="max-width:640px;">
-        <div class="field"><label>頭金</label><div class="unit-input"><input id="z_down" type="number" value="300"><span class="unit">万円</span></div></div>
-        <div class="field"><label>繰上げ返済額</label><div class="unit-input"><input id="z_prepay" type="number" value="200"><span class="unit">万円</span></div></div>
-        <div class="field"><label>繰上げの時期</label><div class="unit-input"><input id="z_prepayYear" type="number" value="10"><span class="unit">年後</span></div></div>
-      </div>
-      <div class="result-grid reveal">
-        <div class="card teal"><div class="k">頭金 <span id="z_downV">300</span>万円で<br>総利息が…</div><div class="v">−<span id="z_downSave">－</span><small>万円</small></div></div>
-        <div class="card hero"><div class="k">繰上げ <span id="z_prepayV">200</span>万円（<span id="z_prepayYearV">10</span>年後）で<br>利息が…</div><div class="v">−<span id="z_prepaySave">－</span><small>万円</small></div></div>
-        <div class="card"><div class="k">繰上げによる期間短縮</div><div class="v" style="color:var(--blue-d)">−<span id="z_shorten">－</span></div></div>
-      </div>
-      <div class="note reveal"><b>頭金・繰上げ返済は、確実に利息を減らせます。</b>手元資金をローンに充てると、その分だけ将来の利息負担が軽くなり、完済も早まります。</div>
-      <details class="kdetails reveal" style="max-width:680px;"><summary>1年ごとの表で「繰上げ あり／なし」を比べる（<span id="z_amortHint">10</span>年目に<span id="z_amortHint2">200</span>万円）</summary>
-        <div style="overflow-x:auto;"><table class="ktable"><thead><tr><th>年</th><th>元本</th><th>利息</th><th>残高<br>繰上げなし</th><th>残高<br>繰上げあり</th></tr></thead><tbody id="z_amort"></tbody></table></div>
-      </details>
-
-      <!-- パート2：運用してから繰上げ -->
-      <div class="eyebrow reveal" style="margin-top:22px;">パート2 ｜ 「運用してから繰上げ」という選択</div>
-      <p class="subtitle reveal" style="margin-bottom:12px;">頭金の分・繰り上げ返済の分を、いったん運用してから繰上げするとどうなるか</p>
-      <div class="row reveal" style="max-width:420px;">
-        <div class="field"><label>想定運用利回り</label><div class="unit-input"><input id="z_yield" type="number" step="0.1" value="3"><span class="unit">％</span></div></div>
-        <div class="field"><label>運用年数</label><div class="unit-input"><input id="z_invYears" type="number" value="10"><span class="unit">年</span></div></div>
-      </div>
-
-      <div class="reveal" style="font-size:15px;font-weight:800;color:var(--ink);margin-top:6px;margin-bottom:8px;">頭金の分（<span id="z_downV2">300</span>万円）を運用したら</div>
-      <div class="result-grid reveal">
-        <div class="card"><div class="k"><span id="z_invYearsV">10</span>年後の運用資産</div><div class="v" style="color:var(--blue-d)"><span id="z_grownD">－</span><small>万円</small></div>
-          <div class="kbreak">元本 <b><span id="z_downV3">300</span>万</b> ＋ 運用益 <b>+<span id="z_gainD">－</span>万</b></div></div>
-        <div class="card teal"><div class="k">増えた額で<b>繰上げ返済</b>したら<br>節約できる利息</div><div class="v">−<span id="z_caseAsaveD">－</span><small>万円</small></div></div>
-      </div>
-
-      <div class="reveal" style="font-size:15px;font-weight:800;color:var(--ink);margin-top:14px;margin-bottom:8px;">繰り上げ返済の分（<span id="z_prepayV2">200</span>万円）を運用したら</div>
-      <div class="result-grid reveal">
-        <div class="card"><div class="k"><span id="z_invYearsV2">10</span>年後の運用資産</div><div class="v" style="color:var(--blue-d)"><span id="z_grownP">－</span><small>万円</small></div>
-          <div class="kbreak">元本 <b><span id="z_prepayV3">200</span>万</b> ＋ 運用益 <b>+<span id="z_gainP">－</span>万</b></div></div>
-        <div class="card teal"><div class="k">増えた額で<b>繰上げ返済</b>したら<br>節約できる利息</div><div class="v">−<span id="z_caseAsaveP">－</span><small>万円</small></div></div>
-      </div>
-
-      <div class="note warn reveal"><b>運用には変動リスクがあります。</b>利回りは確実ではなく元本割れの可能性も。生活防衛資金を確保し、無理のない範囲で。繰上げ返済は「確実に利息が減る」安心感がある点も大切です。</div>
-      <small class="disc reveal">繰上げ・頭金は「期間短縮型」での利息軽減を概算。運用は複利・税引前の概算で手数料・税金は未考慮。各「節約できる利息」は、運用後の資金で当該時点の残高を一括返済した場合の概算です。</small>
+      <h1 class="slide-title reveal">通常・頭金・繰り上げ返済の比較</h1>
+      <div class="chart-frame"><iframe src="step5-compare.html" title="償還表 3シナリオ比較"></iframe></div>
     </div>
   </section>
 
@@ -628,7 +573,12 @@ function calcTypes(){
 const KOUJO_LIMITS={
   2024:{chouki:[4500,5000],zeh:[3500,4500],shoene:[3000,4000],ippan:[0,0]},
   2025:{chouki:[4500,5000],zeh:[3500,4500],shoene:[3000,4000],ippan:[0,0]},
-  2026:{chouki:[4500,5000],zeh:[3500,4500],shoene:[3000,4000],ippan:[0,0]}
+  2026:{chouki:[4500,5000],zeh:[3500,4500],shoene:[3000,4000],ippan:[0,0]},
+  // ↓2027年以降は税制未確定。暫定で2026年と同額（正式決定後にこの数値を編集）
+  2027:{chouki:[4500,5000],zeh:[3500,4500],shoene:[3000,4000],ippan:[0,0]},
+  2028:{chouki:[4500,5000],zeh:[3500,4500],shoene:[3000,4000],ippan:[0,0]},
+  2029:{chouki:[4500,5000],zeh:[3500,4500],shoene:[3000,4000],ippan:[0,0]},
+  2030:{chouki:[4500,5000],zeh:[3500,4500],shoene:[3000,4000],ippan:[0,0]}
 };
 // 給与所得控除
 function kyuyoControl(inc){ // inc=円
@@ -668,7 +618,8 @@ function incomeCap(incomeMan){
 }
 function limitFor(){
   const y=$('k_year').value, perf=$('k_perf').value, tok=$('k_tokurei').checked?1:0;
-  return KOUJO_LIMITS[y][perf][tok]; // 万円
+  const row=KOUJO_LIMITS[y]||KOUJO_LIMITS[2026];   // 未定義の年は2026年で代用（安全策）
+  return row[perf][tok]; // 万円
 }
 // 1人分の控除計算
 function personKoujo(loanMan, incomeMan, limitMan, rate, years, period){
@@ -688,6 +639,7 @@ function personKoujo(loanMan, incomeMan, limitMan, rate, years, period){
 }
 function calcKoujo(){
   const limitMan=limitFor();
+  if($('k_provisional')) $('k_provisional').style.display=(parseInt($('k_year').value,10)>=2027)?'inline':'none';
   const perf=$('k_perf').value;
   const period=(perf==='ippan')?10:13;
   $('k_limit').textContent=fmt(limitMan);
@@ -828,8 +780,7 @@ function calcStep5(){
   setNum('z_grownP',inv2.grown/10000,1); setNum('z_gainP',inv2.gain/10000,1); setNum('z_caseAsaveP',inv2.save/10000,1);
   $('z_invYearsV').textContent=fmt(N); $('z_invYearsV2').textContent=fmt(N);
 }
-['z_loan','z_rate','z_years','z_down','z_prepay','z_prepayYear','z_yield','z_invYears']
-  .forEach(id=>$(id).addEventListener('input',calcStep5));
+/* STEP5は step5-compare.html を iframe 埋め込みに変更したため、旧入力欄(z_*)の配線は無効化 */
 
 /* ====== 表紙 ====== */
 $('custName').addEventListener('input',()=>{ const v=$('custName').value.trim(); $('coverTitleView').textContent=v?(v+'様への'):'あなたに合った'; });
@@ -988,7 +939,9 @@ $('pvReset').onclick=()=>{ timerStart=performance.now(); tickTimer(); };
 $('pvPrev').onclick=back; $('pvNextBtn').onclick=advance;
 
 /* ====== 初期計算 ====== */
-calcTypes(); calcKoujo(); calcStep5();
+calcTypes(); calcKoujo();
+// 数字入力欄：フォーカス時に全選択（タップで上書き入力できるように）
+document.addEventListener('focusin',e=>{ const t=e.target; if(t&&t.matches&&t.matches('input[type=number]')){ setTimeout(()=>{try{t.select();}catch(_){}},0); } });
 showPage(0);
 
 /* ====== iPad：ダブルタップ拡大を無効化（touch-actionの補強） ====== */
