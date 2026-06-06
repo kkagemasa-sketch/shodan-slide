@@ -3,7 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="robots" content="noindex,nofollow,noarchive,nosnippet">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<!-- iPad/iPhone ホーム画面に追加（アプリのように全画面表示） -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="商談スライド">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="logo.png">
 <title>Housing FP ｜ 住宅ローン商談スライド</title>
 <style>
   :root{
@@ -594,8 +600,18 @@ function calcExecRate(){
   $('t_var').value=Math.round(real*1000)/1000;
   calcPayments();
 }
+// 変動金利を手入力したら、優遇幅＝店頭金利−変動金利 を自動計算
+function onVarInput(){
+  const base=parseFloat($('in_base').value)||0, v=parseFloat($('t_var').value)||0;
+  const pref=Math.max(0, base-v);
+  $('in_pref').value=Math.round(pref*1000)/1000;
+  const tr=x=>(Math.round(x*1000)/1000).toString();
+  $('f_base').textContent=tr(base); $('f_pref').textContent=tr(pref); $('f_real').textContent=tr(v);
+  calcPayments();
+}
 function calcTypes(){ calcExecRate(); }   // 初期化用
-['t_loan','t_years','t_var','t_flat','t_fix'].forEach(id=>$(id).addEventListener('input',calcPayments));
+['t_loan','t_years','t_flat','t_fix'].forEach(id=>$(id).addEventListener('input',calcPayments));
+$('t_var').addEventListener('input',onVarInput);
 ['in_base','in_pref'].forEach(id=>$(id).addEventListener('input',calcExecRate));
 
 /* ====== ページ6：住宅ローン控除 ======
