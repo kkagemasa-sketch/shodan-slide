@@ -18,6 +18,7 @@
     --ink:#1b2733; --muted:#5d6b7a;
     --line:#e4e9f0; --bg:#eef2f8; --card:#ffffff;
     --warn:#e8772e; --good:#159a5b;
+    --topbar: calc(56px + env(safe-area-inset-top, 0px));   /* ツールバー高さ＋iPadステータスバー分 */
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;margin:0;}
@@ -28,8 +29,8 @@
 
   /* ===== ツールバー ===== */
   #toolbar{
-    position:fixed;top:0;left:0;right:0;height:56px;z-index:40;
-    display:flex;align-items:center;gap:8px;padding:0 14px;
+    position:fixed;top:0;left:0;right:0;height:var(--topbar);z-index:40;
+    display:flex;align-items:center;gap:8px;padding:env(safe-area-inset-top,0px) 14px 0;box-sizing:border-box;
     background:#fff;border-bottom:1px solid var(--line);box-shadow:0 1px 8px rgba(20,40,80,.06);
     overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;
   }
@@ -65,7 +66,7 @@
   .size .dot{background:var(--ink);border-radius:50%;}
 
   /* ===== スライド ===== */
-  #stage{position:absolute;top:56px;left:0;right:0;bottom:0;overflow:hidden;}
+  #stage{position:absolute;top:var(--topbar);left:0;right:0;bottom:0;overflow:hidden;}
   .slide{position:absolute;inset:0;display:none;padding:30px clamp(18px,4.5vw,72px);overflow:auto;}
   .slide.active{display:block;}
   /* クリックで1項目ずつ表示（パワポ風）*/
@@ -221,7 +222,7 @@
   .checkline input{width:18px;height:18px;}
 
   /* 手書きキャンバス */
-  #penLayer{position:absolute;top:56px;left:0;width:100vw;height:calc(100vh - 56px);z-index:30;touch-action:none;display:none;cursor:crosshair;
+  #penLayer{position:absolute;top:var(--topbar);left:0;width:100vw;height:calc(100vh - var(--topbar));z-index:30;touch-action:none;display:none;cursor:crosshair;
     -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
   /* 手書き中はスライド全体の文字選択を禁止（縦線で全選択になるのを防ぐ）*/
   body.penmode, body.penmode *{-webkit-user-select:none !important;user-select:none !important;-webkit-touch-callout:none !important;}
@@ -237,7 +238,7 @@
   @media (max-width:720px){ .navarrow{display:none;} #toolbar .brand b{display:none;} }
 
   /* 発表者ビュー（カンペ） */
-  #presenter{position:fixed;top:56px;right:0;bottom:0;width:340px;max-width:80vw;z-index:36;
+  #presenter{position:fixed;top:var(--topbar);right:0;bottom:0;width:340px;max-width:80vw;z-index:36;
     background:#0f1b29;color:#e7eef6;transform:translateX(100%);transition:transform .28s ease;
     display:flex;flex-direction:column;gap:12px;padding:16px;box-shadow:-6px 0 24px rgba(0,0,0,.25);}
   #presenter.open{transform:none;}
@@ -1005,6 +1006,9 @@ document.addEventListener('touchend',function(e){
   if(now-_lastTap<=350){ e.preventDefault(); }   // 350ms以内の2回目タップ＝ダブルタップ→拡大を止める
   _lastTap=now;
 },{passive:false});
+
+/* ====== オフライン対応（Service Worker登録）====== */
+if('serviceWorker' in navigator){ window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); }); }
 </script>
 </body>
 </html>

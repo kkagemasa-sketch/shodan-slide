@@ -30,7 +30,13 @@
         .fetch-btn { background: #e8f5e9 !important; border-color: #66bb6a !important; color: #2e7d32 !important; font-weight: 600; }
         .fetch-btn:hover { background: #c8e6c9 !important; }
         .fetch-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .chart-wrap { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+        .chart-wrap { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); position: relative; }
+        #readout { position:absolute; top:28px; left:28px; z-index:5; background:rgba(255,255,255,.94); border:1px solid #d7dde6; border-radius:10px; padding:9px 12px; font-size:12.5px; line-height:1.55; box-shadow:0 2px 10px rgba(20,40,80,.12); pointer-events:none; max-width:60%; }
+        #readout .ro-date { font-weight:800; color:#1b2733; margin-bottom:3px; font-size:13px; }
+        #readout .ro-row { white-space:nowrap; color:#333; }
+        #readout .ro-dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; vertical-align:1px; }
+        #readout b { color:#21408f; }
+        #readout .ro-hint { color:#8a95a3; font-weight:700; }
         canvas { width: 100% !important; }
         .status { font-size: 0.78rem; color: #666; margin-top: 12px; text-align: right; }
         .status.error { color: #e53935; }
@@ -125,6 +131,7 @@
             <div class="item"><span class="dot" style="background:#5c6bc0"></span>固定金利（10年）</div>
         </div>
         <div class="chart-wrap">
+            <div id="readout"><span class="ro-hint">チャートをタッチ／マウスを乗せると、その時期の全金利を表示します</span></div>
             <canvas id="chart" height="400"></canvas>
         </div>
         <div class="status" id="status">ヒストリカルデータ表示中（データ最終更新: 2026年3月）</div>
@@ -455,8 +462,19 @@ const chart = new Chart(ctx, {
         plugins: {
             legend: { display: false },
             tooltip: {
-                callbacks: {
-                    label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(3) + '%'
+                enabled: false,
+                external: function(context){
+                    const el = document.getElementById('readout');
+                    if(!el) return;
+                    const tt = context.tooltip;
+                    if(!tt || tt.opacity === 0 || !tt.dataPoints || !tt.dataPoints.length) return; // 離したら最後の表示を残す
+                    const title = (tt.title && tt.title[0]) ? tt.title[0] : '';
+                    let html = '<div class="ro-date">'+ title +'</div>';
+                    tt.dataPoints.forEach(dp => {
+                        const ds = context.chart.data.datasets[dp.datasetIndex];
+                        html += '<div class="ro-row"><span class="ro-dot" style="background:'+ ds.borderColor +'"></span>'+ ds.label +'：<b>'+ dp.parsed.y.toFixed(3) +'%</b></div>';
+                    });
+                    el.innerHTML = html;
                 }
             }
         },

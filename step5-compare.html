@@ -59,6 +59,7 @@
   .tablewrap{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:auto;max-height:58vh;}
   table.amort{border-collapse:collapse;width:100%;font-size:12.5px;white-space:nowrap;user-select:none;}
   table.amort td.sel{background:#bcd4ff !important;}
+  table.amort td.anchor{background:#7fa8ff !important;box-shadow:inset 0 0 0 2px #2f53c8;}
   .selbar{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#1b2733;color:#fff;border-radius:12px;padding:10px 18px;display:none;gap:22px;align-items:center;font-size:14px;font-weight:700;box-shadow:0 6px 22px rgba(0,0,0,.28);z-index:50;}
   .selbar b{font-size:17px;color:#7fe3da;margin-left:5px;}
   .selbar .x{cursor:pointer;color:#9fb0c0;font-weight:800;font-size:18px;margin-left:4px;}
@@ -113,7 +114,7 @@
   <table class="cmp" id="cmp"></table>
   <div class="legendline">※金額は万円・円。頭金あり＝借入が減る（返済額軽減型・期間同じ）／繰上げあり＝期間短縮型（毎月返済は同じ・早く完済）。元利均等・概算。</div>
 
-  <div class="legendline">数字をドラッグで範囲選択すると、下に「合計・平均・個数」が出ます（マウス／タッチペン）。</div>
+  <div class="legendline">数字を<b>2回タップ</b>（始点→終点）すると、その範囲の合計・平均・個数が下に出ます（指でもOK）。</div>
   <div class="tablewrap" style="margin-top:8px;">
     <table class="amort" id="amort"></table>
   </div>
@@ -242,13 +243,15 @@ document.addEventListener('focusin',e=>{ const t=e.target; if(t&&t.matches&&t.ma
 ['loan','years','down','prepay','ptime'].forEach(id=>$(id).addEventListener('input',calc));
 renderSteps(); calc();
 
-/* ===== ドラッグで範囲選択 → 合計・平均・個数 ===== */
+/* ===== 2タップで範囲選択（始点→終点）→ 合計・平均・個数 ===== */
 (function(){
   const table=$('amort'), bar=$('selbar');
-  let selecting=false, anchor=null;
+  let anchor=null;   // 始点（まだ終点を選んでいない状態）
   function pos(td){ const tr=td.parentElement; const body=table.tBodies[0]; if(!body||tr.parentElement!==body) return null; return {r:[...body.rows].indexOf(tr), c:td.cellIndex}; }
-  function clearSel(){ table.querySelectorAll('td.sel').forEach(td=>td.classList.remove('sel')); }
-  function apply(a,b){
+  function clearSel(){ table.querySelectorAll('td.sel,td.anchor').forEach(td=>{td.classList.remove('sel');td.classList.remove('anchor');}); }
+  function reset(){ anchor=null; clearSel(); bar.style.display='none'; }
+  function cellAt(p){ const row=table.tBodies[0].rows[p.r]; return row?row.cells[p.c]:null; }
+  function compute(a,b){
     clearSel();
     const body=table.tBodies[0]; if(!body) return;
     const r1=Math.min(a.r,b.r), r2=Math.max(a.r,b.r), c1=Math.min(a.c,b.c), c2=Math.max(a.c,b.c);
@@ -258,14 +261,23 @@ renderSteps(); calc();
         if(td.classList.contains('year'))continue;
         const v=parseFloat(td.textContent.replace(/[^0-9.\-]/g,'')); if(!isNaN(v)){ sum+=v; cnt++; }
       } }
-    if(cnt>0){ bar.style.display='flex';
-      bar.innerHTML=`<span>合計 <b>${fmt(sum)}</b> 円（約${fmt(sum/1e4)}万）</span><span>平均 <b>${fmt(sum/cnt)}</b></span><span>個数 <b>${cnt}</b></span><span class="x" id="selx">×</span>`;
-      $('selx').addEventListener('click',()=>{ clearSel(); bar.style.display='none'; });
-    } else { bar.style.display='none'; }
+    bar.style.display='flex';
+    bar.innerHTML = cnt>0
+      ? `<span>合計 <b>${fmt(sum)}</b> 円（約${fmt(sum/1e4)}万）</span><span>平均 <b>${fmt(sum/cnt)}</b></span><span>個数 <b>${cnt}</b></span><span class="x" id="selx">×</span>`
+      : `<span>数字のマスを選んでください</span><span class="x" id="selx">×</span>`;
+    const x=$('selx'); if(x) x.addEventListener('click',reset);
   }
-  table.addEventListener('pointerdown',e=>{ if(e.pointerType==='touch')return; const td=e.target.closest('td'); if(!td)return; const p=pos(td); if(!p)return; selecting=true; anchor=p; apply(anchor,anchor); e.preventDefault(); });
-  table.addEventListener('pointermove',e=>{ if(!selecting)return; const td=e.target.closest('td'); if(!td)return; const p=pos(td); if(!p)return; apply(anchor,p); });
-  document.addEventListener('pointerup',()=>{ selecting=false; });
+  table.addEventListener('click',e=>{
+    const td=e.target.closest('td'); if(!td)return; const p=pos(td); if(!p)return;
+    if(!anchor){                       // 1回目＝始点
+      clearSel(); anchor=p; td.classList.add('anchor');
+      bar.style.display='flex';
+      bar.innerHTML=`<span>始点を選びました。次に「終点」のマスをタップ</span><span class="x" id="selx">×</span>`;
+      const x=$('selx'); if(x) x.addEventListener('click',reset);
+    } else {                           // 2回目＝終点 → 範囲確定
+      compute(anchor,p); anchor=null;
+    }
+  });
 })();
 </script>
 </body>
