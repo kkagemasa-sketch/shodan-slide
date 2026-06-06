@@ -177,6 +177,17 @@
   #rateChart{width:100%;display:block;}
   .chart-frame{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#fff;}
   .chart-frame iframe{width:100%;height:calc(100vh - 250px);min-height:400px;border:0;display:block;}
+  .koujo-people{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;margin-top:6px;}
+  .koujo-col{flex:1 1 340px;min-width:280px;border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff;}
+  .koujo-col.husband{border-top:4px solid var(--blue);}
+  .koujo-col.wife{border-top:4px solid var(--teal);}
+  .koujo-col .card{margin-top:8px;}
+  .koujo-total{margin-top:12px;border:1px solid #d4ddff;background:#eef2ff;border-radius:14px;padding:14px 16px;}
+  .koujo-total .row3{display:flex;gap:18px;flex-wrap:wrap;}
+  .koujo-total .row3>div{flex:1 1 150px;}
+  .koujo-total .t{font-size:12.5px;color:var(--muted);font-weight:800;}
+  .koujo-total .b{font-size:22px;font-weight:800;color:var(--blue-d);}
+  .koujo-total .b small{font-size:12px;color:var(--muted);font-weight:700;margin-left:2px;}
   .chart-legend{display:flex;gap:18px;flex-wrap:wrap;margin:4px 4px 10px;font-size:13.5px;font-weight:700;}
   .chart-legend .it{display:flex;align-items:center;gap:7px;color:var(--ink);}
   .chart-legend .ln{width:20px;height:4px;border-radius:2px;}
@@ -388,8 +399,6 @@
           <option value="zeh">ZEH水準省エネ住宅</option>
           <option value="shoene" selected>省エネ基準適合住宅</option>
           <option value="ippan">一般住宅（その他）</option></select></div>
-        <div class="field"><label>借入額（年末残高の目安）</label><div class="unit-input"><input id="k_loanA" type="number" value="3500"><span class="unit">万円</span></div></div>
-        <div class="field"><label>ご年収</label><div class="unit-input"><input id="k_incomeA" type="number" value="500"><span class="unit">万円</span></div></div>
         <div class="field"><label>返済期間</label><div class="unit-input"><input id="k_years" type="number" value="35"><span class="unit">年</span></div></div>
         <div class="field"><label>金利（年）</label><div class="unit-input"><input id="k_rate" type="number" step="0.01" value="1.0"><span class="unit">％</span></div></div>
       </div>
@@ -398,38 +407,43 @@
 
       <div class="note blue reveal" style="margin-top:14px;">借入限度額：<b><span id="k_limit">3,000</span>万円</b>（入居年・性能・特例で自動判定）　／　控除率0.7％　／　控除期間 <span id="k_period">13</span>年<span id="k_provisional" style="display:none;color:#c23b40;font-weight:800;"><br>※2027年以降は税制が未確定のため、暫定で2026年と同額を表示しています。</span></div>
 
-      <!-- 本人 -->
-      <div class="reveal" style="margin-top:6px;">
-        <div class="barlabel" style="font-size:15px;color:var(--ink);">本人（戻る額）</div>
-        <div class="result-grid" style="margin-top:4px;">
+      <!-- ご本人／ご主人様・奥様（2列・各項目を縦に） -->
+      <div class="koujo-people reveal">
+        <div class="koujo-col husband">
+          <div class="barlabel" id="labPersonA" style="font-size:15px;color:var(--blue-d);">ご本人</div>
+          <div class="field"><label>借入額（年末残高の目安）</label><div class="unit-input"><input id="k_loanA" type="number" value="3500"><span class="unit">万円</span></div></div>
+          <div class="field" style="margin-top:8px;"><label>ご年収</label><div class="unit-input"><input id="k_incomeA" type="number" value="500"><span class="unit">万円</span></div></div>
           <div class="card"><div class="k">① 残高×0.7％</div><div class="v" style="color:var(--teal-d)"><span id="kA_rule">－</span><small>万円/年</small></div></div>
           <div class="card"><div class="k">② 年収からの上限</div><div class="v" style="color:var(--blue-d)"><span id="kA_income">－</span><small>万円/年</small></div>
             <div class="kbreak">所得税 <b><span id="kA_tax">－</span>万</b> ＋ 住民税 <b><span id="kA_jumin">－</span>万</b><span class="cap" id="kA_juminNote"></span></div></div>
           <div class="card hero"><div class="k">実際に戻る額（①②の小さい方）<span class="apply-tag off" id="kA_tag">－</span></div><div class="v"><span id="kA_apply">－</span><small>万円/年</small></div></div>
+          <div class="note" style="margin-top:8px;">初年度 約<b><span id="kA_y1">－</span>万円</b>　／　<span id="k_period2">13</span>年合計 約<b><span id="kA_total">－</span>万円</b></div>
+          <details class="kdetails"><summary>1年ごとの控除額（全期間）</summary>
+            <table class="ktable"><thead><tr><th>年</th><th>年末残高</th><th>残高×0.7%</th><th>控除額</th></tr></thead><tbody id="kA_rows"></tbody><tfoot><tr><td colspan="3">合計</td><td id="kA_foot">－</td></tr></tfoot></table>
+          </details>
         </div>
-        <div class="note reveal" style="margin-top:0;">初年度 約<b><span id="kA_y1">－</span>万円</b>　／　<span id="k_period2">13</span>年間の合計（概算）約<b><span id="kA_total">－</span>万円</b></div>
-        <details class="kdetails reveal"><summary>1年ごとの控除額（全期間）を表示</summary>
-          <table class="ktable"><thead><tr><th>年</th><th>年末残高</th><th>残高×0.7%</th><th>控除額</th></tr></thead><tbody id="kA_rows"></tbody><tfoot><tr><td colspan="3">合計</td><td id="kA_foot">－</td></tr></tfoot></table>
-        </details>
-      </div>
-
-      <!-- ペアローン -->
-      <div class="reveal" id="pairBlock" style="display:none;">
-        <div class="barlabel" style="font-size:15px;color:var(--ink);">配偶者</div>
-        <div class="row">
+        <div class="koujo-col wife" id="pairBlock" style="display:none;">
+          <div class="barlabel" style="font-size:15px;color:var(--teal-d);">奥様（配偶者）</div>
           <div class="field"><label>借入額（年末残高の目安）</label><div class="unit-input"><input id="k_loanB" type="number" value="2000"><span class="unit">万円</span></div></div>
-          <div class="field"><label>ご年収</label><div class="unit-input"><input id="k_incomeB" type="number" value="400"><span class="unit">万円</span></div></div>
-        </div>
-        <div class="result-grid" style="margin-top:4px;">
+          <div class="field" style="margin-top:8px;"><label>ご年収</label><div class="unit-input"><input id="k_incomeB" type="number" value="400"><span class="unit">万円</span></div></div>
           <div class="card"><div class="k">① 残高×0.7％</div><div class="v" style="color:var(--teal-d)"><span id="kB_rule">－</span><small>万円/年</small></div></div>
           <div class="card"><div class="k">② 年収からの上限</div><div class="v" style="color:var(--blue-d)"><span id="kB_income">－</span><small>万円/年</small></div>
             <div class="kbreak">所得税 <b><span id="kB_tax">－</span>万</b> ＋ 住民税 <b><span id="kB_jumin">－</span>万</b><span class="cap" id="kB_juminNote"></span></div></div>
-          <div class="card teal"><div class="k">配偶者の戻る額<span class="apply-tag off" id="kB_tag">－</span></div><div class="v"><span id="kB_apply">－</span><small>万円/年</small></div></div>
+          <div class="card teal"><div class="k">実際に戻る額（①②の小さい方）<span class="apply-tag off" id="kB_tag">－</span></div><div class="v"><span id="kB_apply">－</span><small>万円/年</small></div></div>
+          <div class="note" style="margin-top:8px;">初年度 約<b><span id="kB_y1">－</span>万円</b>　／　<span id="k_period3">13</span>年合計 約<b><span id="kB_total">－</span>万円</b></div>
+          <details class="kdetails"><summary>1年ごとの控除額（全期間）</summary>
+            <table class="ktable"><thead><tr><th>年</th><th>年末残高</th><th>残高×0.7%</th><th>控除額</th></tr></thead><tbody id="kB_rows"></tbody><tfoot><tr><td colspan="3">合計</td><td id="kB_foot">－</td></tr></tfoot></table>
+          </details>
         </div>
-        <details class="kdetails reveal"><summary>配偶者の1年ごとの控除額（全期間）を表示</summary>
-          <table class="ktable"><thead><tr><th>年</th><th>年末残高</th><th>残高×0.7%</th><th>控除額</th></tr></thead><tbody id="kB_rows"></tbody><tfoot><tr><td colspan="3">合計</td><td id="kB_foot">－</td></tr></tfoot></table>
-        </details>
-        <div class="card hero reveal" style="margin-top:6px;"><div class="k">世帯合計（13年・概算）</div><div class="v"><span id="k_household">－</span><small>万円</small></div></div>
+      </div>
+
+      <div class="koujo-total reveal" id="coupleTotal" style="display:none;">
+        <div class="barlabel" style="font-size:15px;color:var(--blue-d);">ご夫婦2人の合計</div>
+        <div class="row3" style="margin-top:6px;">
+          <div><div class="t">合計借入額</div><div class="b"><span id="k_totalLoan">－</span><small>万円</small></div></div>
+          <div><div class="t">年間に戻る額（2人合計）</div><div class="b"><span id="k_yearTotal">－</span><small>万円/年</small></div></div>
+          <div><div class="t"><span id="k_period4">13</span>年間の合計（概算）</div><div class="b"><span id="k_household">－</span><small>万円</small></div></div>
+        </div>
       </div>
 
       <small class="disc reveal">※あくまで概算です。所得税額は給与収入から給与所得控除・基礎控除・社会保険料（概算）を差し引いて試算しており、各種控除や扶養により実際と異なります。制度は税制改正で変わるため、最終的には国税庁・税理士等で最新情報をご確認ください。住民税からの控除上限は年9.75万円で計算。</small>
@@ -640,25 +654,30 @@ function personKoujo(loanMan, incomeMan, limitMan, rate, years, period){
 function calcKoujo(){
   const limitMan=limitFor();
   if($('k_provisional')) $('k_provisional').style.display=(parseInt($('k_year').value,10)>=2027)?'inline':'none';
+  const pair=$('k_pair').checked;
+  if($('labPersonA')) $('labPersonA').textContent=pair?'ご主人様（本人）':'ご本人';
   const perf=$('k_perf').value;
   const period=(perf==='ippan')?10:13;
   $('k_limit').textContent=fmt(limitMan);
-  $('k_period').textContent=period; $('k_period2').textContent=period;
+  ['k_period','k_period2','k_period3','k_period4'].forEach(id=>{ if($(id))$(id).textContent=period; });
   const rate=parseFloat($('k_rate').value)||0, years=parseFloat($('k_years').value)||35;
-  // 本人
+  // ご本人／ご主人様
   const A=personKoujo(parseFloat($('k_loanA').value)||0, parseFloat($('k_incomeA').value)||0, limitMan, rate, years, period);
   setNum('kA_rule',A.rule1/10000,1); setNum('kA_income',A.cap.total/10000,1);
   setNum('kA_apply',A.apply1/10000,1); setNum('kA_y1',A.apply1/10000,1); setNum('kA_total',A.total/10000,1);
   setBreak('kA',A.cap); renderTable('kA',A); tagApply('kA_tag',A.ruleBigger);
-  // ペア
-  let household=A.total;
-  if($('k_pair').checked){
+  // 合計（単独はご本人のみ）
+  let household=A.total, yearTotal=A.apply1, totalLoan=parseFloat($('k_loanA').value)||0;
+  if(pair){
     const B=personKoujo(parseFloat($('k_loanB').value)||0, parseFloat($('k_incomeB').value)||0, limitMan, rate, years, period);
     setNum('kB_rule',B.rule1/10000,1); setNum('kB_income',B.cap.total/10000,1);
-    setNum('kB_apply',B.apply1/10000,1); setBreak('kB',B.cap); renderTable('kB',B); tagApply('kB_tag',B.ruleBigger);
-    household+=B.total;
+    setNum('kB_apply',B.apply1/10000,1); setNum('kB_y1',B.apply1/10000,1); setNum('kB_total',B.total/10000,1);
+    setBreak('kB',B.cap); renderTable('kB',B); tagApply('kB_tag',B.ruleBigger);
+    household+=B.total; yearTotal+=B.apply1; totalLoan+=parseFloat($('k_loanB').value)||0;
   }
   setNum('k_household',household/10000,1);
+  setNum('k_yearTotal',yearTotal/10000,1);
+  if($('k_totalLoan')) $('k_totalLoan').textContent=fmt(totalLoan);
 }
 // 万円表示（小数2桁まで）
 function man2(yen){ return (Math.round(yen/10000*100)/100).toLocaleString('ja-JP'); }
@@ -688,7 +707,7 @@ function tagApply(id,ruleBigger){
 }
 ['k_year','k_perf','k_tokurei','k_years','k_rate','k_loanA','k_incomeA','k_loanB','k_incomeB','k_pair']
   .forEach(id=>$(id).addEventListener('input',calcKoujo));
-$('k_pair').addEventListener('change',()=>{ $('pairBlock').style.display=$('k_pair').checked?'block':'none'; calcKoujo(); });
+$('k_pair').addEventListener('change',()=>{ const on=$('k_pair').checked; $('pairBlock').style.display=on?'block':'none'; if($('coupleTotal'))$('coupleTotal').style.display=on?'block':'none'; calcKoujo(); });
 
 /* ====== STEP5：頭金・繰上げの効果／運用してから繰上げ ====== */
 function totalInterest(Pyen,i,years){ return monthlyPay(Pyen,i,years)*years*12 - Pyen; }
