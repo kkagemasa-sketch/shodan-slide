@@ -9,6 +9,7 @@ const ASSETS = [
   './chart.umd.min.js',
   './chartjs-adapter-date-fns.bundle.min.js',
   './logo.png',
+  './app-icon.png',
   './robots.txt'
 ];
 
