@@ -944,18 +944,30 @@ function drawStroke(st){ if(st.pts.length<1)return;
 }
 const posOf=e=>{const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top+scrollTopOf()};};  // 内容座標（スクロール量を加算）
 let drawId=null;            // 今描いているポインタのID（これ以外＝手のひら等は無視）
-let scrollId=null, scrollY0=0, scrollTop0=0;   // 指スクロール用
+let scrollId=null, scrollY0=0, scrollTop0=0, scrollLastY=0, scrollLastT=0, scrollVel=0, momentumRAF=0;   // 指スクロール（慣性つき）
 let redrawScheduled=false;  // 描画をフレーム単位にまとめる（速書きでも軽い）
 function scheduleRedraw(){ if(redrawScheduled)return; redrawScheduled=true; requestAnimationFrame(()=>{ redrawScheduled=false; redraw(); }); }
+function startMomentum(){   // 指を離した後、惰性で“すーっ”と流す（滑らかさ）
+  const s=slides[page]; if(!s)return; let v=scrollVel; if(Math.abs(v)<0.04)return;   // px/ms
+  v=Math.max(-3.5,Math.min(3.5,v));   // 速度上限（飛びすぎ防止）
+  const max=Math.max(0,s.scrollHeight-s.clientHeight); let last=performance.now();
+  function step(now){ const dt=Math.min(40,now-last); last=now;
+    s.scrollTop+=v*dt;
+    if(s.scrollTop<=0){s.scrollTop=0;v=0;} else if(s.scrollTop>=max){s.scrollTop=max;v=0;}
+    v*=Math.pow(0.95,dt/16); scheduleRedraw();
+    momentumRAF = Math.abs(v)>0.02 ? requestAnimationFrame(step) : 0;
+  }
+  momentumRAF=requestAnimationFrame(step);
+}
 // ※setPointerCapture/lostpointercaptureは使わない（iOSの遅延通知で連続ストロークが消えるため）。全画面キャンバスでも捕捉なしでmoveは取れる。
 canvas.addEventListener('pointerdown',e=>{ if(!penOn)return;
   if(penOnlyMode && e.pointerType==='touch'){          // 指＝描かずにスクロール（ペンと両立）
-    const s=slides[page]; if(s){ scrollId=e.pointerId; scrollY0=e.clientY; scrollTop0=s.scrollTop; } return; }
+    const s=slides[page]; if(s){ if(momentumRAF){cancelAnimationFrame(momentumRAF);momentumRAF=0;} scrollId=e.pointerId; scrollY0=e.clientY; scrollTop0=s.scrollTop; scrollLastY=e.clientY; scrollLastT=performance.now(); scrollVel=0; } return; }
   drawId=e.pointerId; drawing=true;
   redoByPage[page]=[];   // 新しく書いたら「進む」履歴はリセット
   current={tool,color:penColor,size:penSize,pts:[posOf(e)]}; strokesByPage[page].push(current); scheduleRedraw(); });
 canvas.addEventListener('pointermove',e=>{ if(!penOn)return;
-  if(e.pointerId===scrollId){ const s=slides[page]; if(s){ s.scrollTop=scrollTop0-(e.clientY-scrollY0); scheduleRedraw(); } return; }  // 指スクロール
+  if(e.pointerId===scrollId){ const s=slides[page]; if(s){ s.scrollTop=scrollTop0-(e.clientY-scrollY0); const now=performance.now(),dt=now-scrollLastT; if(dt>0)scrollVel=-(e.clientY-scrollLastY)/dt; scrollLastY=e.clientY; scrollLastT=now; scheduleRedraw(); } return; }  // 指スクロール（速度を記録）
   if(!drawing||e.pointerId!==drawId)return;
   const evs=(e.getCoalescedEvents?e.getCoalescedEvents():null);   // 速書きで間引かれた途中の点も全部拾う
   if(evs&&evs.length){ for(const ev of evs) current.pts.push(posOf(ev)); }
@@ -963,7 +975,7 @@ canvas.addEventListener('pointermove',e=>{ if(!penOn)return;
   scheduleRedraw(); });
 canvas.addEventListener('selectstart',e=>e.preventDefault());   // 文字選択の開始を禁止
 function endStroke(e){
-  if(e&&e.pointerId===scrollId){ scrollId=null; return; }   // 指スクロール終了
+  if(e&&e.pointerId===scrollId){ scrollId=null; startMomentum(); return; }   // 指スクロール終了→慣性へ
   if(!drawing)return; if(e&&e.pointerId!==undefined&&e.pointerId!==drawId)return;
   if(current&&e&&e.type==='pointerup'){ current.pts.push(posOf(e)); }   // 離した位置も線に加える（速書きで点だけにならない）
   drawId=null; drawing=false; current=null; redraw(); }
