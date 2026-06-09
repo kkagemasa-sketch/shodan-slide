@@ -254,6 +254,12 @@
   #presenter .pv-btn{background:#28415c;border:none;color:#e7eef6;border-radius:8px;padding:9px 12px;font-weight:700;cursor:pointer;font-size:13px;}
   #presenter .pv-btn:active{transform:translateY(1px);}
   #presenter .pv-controls{display:flex;gap:8px;} #presenter .pv-controls .pv-btn{flex:1;}
+  /* まとめ：なぜ今かの縦並びリスト */
+  .now-list{display:flex;flex-direction:column;gap:14px;max-width:780px;margin-top:6px;}
+  .now-item{display:flex;align-items:center;gap:18px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 22px;box-shadow:0 3px 14px rgba(20,40,80,.06);}
+  .now-item .num{flex-shrink:0;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#fff;box-shadow:0 4px 12px rgba(20,40,80,.18);}
+  .now-item .nbody .t{font-size:clamp(17px,2.2vw,21px);font-weight:800;color:var(--ink);line-height:1.3;}
+  .now-item .nbody .d{font-size:13.5px;color:var(--muted);margin-top:5px;line-height:1.6;}
 </style>
 </head>
 <body>
@@ -284,7 +290,7 @@
   <button class="btn" id="presBtn">🗒 発表者</button>
   <button class="btn" id="penBtn">✏️ 手書き</button>
   <span class="navgroup"><span class="lab">項目</span><button class="btn" id="revealPrevBtn" title="項目を戻す">◀</button><button class="btn primary" id="revealNextBtn" title="項目を出す">▶</button></span>
-  <span class="pageind" id="pageInd">1 / 6</span>
+  <span class="pageind" id="pageInd">1 / 7</span>
   <span class="navgroup"><span class="lab">ページ</span><button class="btn" id="prevBtn" title="前のページ">◀</button><button class="btn" id="nextBtn" title="次のページ">▶</button></span>
 </div>
 
@@ -476,6 +482,26 @@
     </div>
   </section>
 
+  <!-- ===== まとめ（次の一歩） ===== -->
+  <section class="slide" data-page="7">
+    <div class="slide-inner">
+      <div class="eyebrow reveal">まとめ ｜ 次の一歩</div>
+      <h1 class="slide-title reveal">「守り」と「増やし」の見直しは、<br>今がベストなタイミング</h1>
+      <p class="subtitle reveal">なぜ“今”なのか——理由は3つあります</p>
+      <div style="display:flex;flex-direction:column;gap:14px;max-width:760px;margin-top:6px;">
+        <div class="card hero reveal"><div class="k">なぜ今か ①</div>
+          <div style="font-size:clamp(16px,2.1vw,20px);font-weight:800;line-height:1.35;margin:4px 0 8px;color:#fff;">土台が決まる、今だから</div>
+          <div style="font-size:13px;line-height:1.65;color:#cdd9ff;">住宅ローンで、これから30年の家計の“土台”がまさに今決まる</div></div>
+        <div class="card teal reveal"><div class="k">なぜ今か ②</div>
+          <div style="font-size:clamp(16px,2.1vw,20px);font-weight:800;line-height:1.35;margin:4px 0 8px;color:#fff;">情報がそろっている、今だから</div>
+          <div style="font-size:13px;line-height:1.65;color:#d5fbf7;">収入・支出・将来を整理したばかり。二度手間なく一気に見直せる</div></div>
+        <div class="card reveal" style="background:linear-gradient(135deg,#f5a13c,#e8772e);border:none;"><div class="k" style="color:#ffe3c9;">なぜ今か ③</div>
+          <div style="font-size:clamp(16px,2.1vw,20px);font-weight:800;line-height:1.35;margin:4px 0 8px;color:#fff;">早く動ける、今だから</div>
+          <div style="font-size:13px;line-height:1.65;color:#ffe9d6;">守りも増やしも“早いほど得”。家を買う今日が、いちばん早く動ける日</div></div>
+      </div>
+    </div>
+  </section>
+
 </div>
 
 <canvas id="penLayer"></canvas>
@@ -490,7 +516,7 @@ const fmt1=n=>(Math.round(n*10)/10).toLocaleString('ja-JP');
 
 /* ====== ページ送り ====== */
 let slides=[...document.querySelectorAll('.slide')];
-slides=[0,4,1,2,3,5].map(i=>slides[i]); // 表紙→住宅ローン控除→金利タイプ→変動ルール→金利推移→繰上げ の順
+slides=[0,4,1,2,3,5,6].map(i=>slides[i]); // 表紙→控除→金利タイプ→変動ルール→金利推移→繰上げ→まとめ の順
 let page=0, step=0;
 function revealItems(slide,count){
   const items=slide.querySelectorAll('.reveal');
@@ -901,8 +927,11 @@ let penOn=false, drawing=false, tool='pen', penColor='#e02424', penSize=4, penOn
 let strokesByPage=slides.map(()=>[]); let redoByPage=slides.map(()=>[]); let current=null;
 function resizeCanvas(){ const dpr=window.devicePixelRatio||1; const w=canvas.clientWidth,h=canvas.clientHeight;
   canvas.width=w*dpr; canvas.height=h*dpr; pctx.setTransform(dpr,0,0,dpr,0,0); redraw(); }
+function scrollTopOf(){ const s=slides[page]; return s?s.scrollTop:0; }   // 現在ページのスクロール量
 function redraw(){ if(!canvas.clientWidth)return; pctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);
-  for(const st of strokesByPage[page]) drawStroke(st); }
+  const sc=scrollTopOf(); pctx.save(); pctx.translate(0,-sc);   // スクロール量ぶん上にずらして描く＝線が内容に追従
+  for(const st of strokesByPage[page]) drawStroke(st);
+  pctx.restore(); }
 function drawStroke(st){ if(st.pts.length<1)return;
   pctx.lineCap='round'; pctx.lineJoin='round';
   if(st.tool==='eraser'){ pctx.globalCompositeOperation='destination-out'; pctx.globalAlpha=1; pctx.lineWidth=st.size*5; pctx.strokeStyle='#000'; }
@@ -913,25 +942,29 @@ function drawStroke(st){ if(st.pts.length<1)return;
   if(st.pts.length===1){ pctx.lineTo(st.pts[0].x+0.1,st.pts[0].y+0.1); }
   pctx.stroke(); pctx.globalAlpha=1; pctx.globalCompositeOperation='source-over';
 }
-const posOf=e=>{const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
+const posOf=e=>{const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top+scrollTopOf()};};  // 内容座標（スクロール量を加算）
 let drawId=null;            // 今描いているポインタのID（これ以外＝手のひら等は無視）
+let scrollId=null, scrollY0=0, scrollTop0=0;   // 指スクロール用
 let redrawScheduled=false;  // 描画をフレーム単位にまとめる（速書きでも軽い）
 function scheduleRedraw(){ if(redrawScheduled)return; redrawScheduled=true; requestAnimationFrame(()=>{ redrawScheduled=false; redraw(); }); }
-// ※setPointerCapture/lostpointercaptureは使わない：iOSが捕捉外れ通知を約0.5秒遅らせ、
-//   同じpointerIDを使い回すApple Pencilだと「前の線の遅延通知」が次の線を消す（偶数本が消える）原因になるため。
-//   全画面キャンバスなので捕捉なしでもmoveは取れる。
+// ※setPointerCapture/lostpointercaptureは使わない（iOSの遅延通知で連続ストロークが消えるため）。全画面キャンバスでも捕捉なしでmoveは取れる。
 canvas.addEventListener('pointerdown',e=>{ if(!penOn)return;
-  if(penOnlyMode && e.pointerType==='touch')return;   // ペンのみモード：指/手のひらは無視
+  if(penOnlyMode && e.pointerType==='touch'){          // 指＝描かずにスクロール（ペンと両立）
+    const s=slides[page]; if(s){ scrollId=e.pointerId; scrollY0=e.clientY; scrollTop0=s.scrollTop; } return; }
   drawId=e.pointerId; drawing=true;
   redoByPage[page]=[];   // 新しく書いたら「進む」履歴はリセット
   current={tool,color:penColor,size:penSize,pts:[posOf(e)]}; strokesByPage[page].push(current); scheduleRedraw(); });
-canvas.addEventListener('pointermove',e=>{ if(!penOn||!drawing||e.pointerId!==drawId)return;
+canvas.addEventListener('pointermove',e=>{ if(!penOn)return;
+  if(e.pointerId===scrollId){ const s=slides[page]; if(s){ s.scrollTop=scrollTop0-(e.clientY-scrollY0); scheduleRedraw(); } return; }  // 指スクロール
+  if(!drawing||e.pointerId!==drawId)return;
   const evs=(e.getCoalescedEvents?e.getCoalescedEvents():null);   // 速書きで間引かれた途中の点も全部拾う
   if(evs&&evs.length){ for(const ev of evs) current.pts.push(posOf(ev)); }
   else current.pts.push(posOf(e));
   scheduleRedraw(); });
 canvas.addEventListener('selectstart',e=>e.preventDefault());   // 文字選択の開始を禁止
-function endStroke(e){ if(!drawing)return; if(e&&e.pointerId!==undefined&&e.pointerId!==drawId)return;
+function endStroke(e){
+  if(e&&e.pointerId===scrollId){ scrollId=null; return; }   // 指スクロール終了
+  if(!drawing)return; if(e&&e.pointerId!==undefined&&e.pointerId!==drawId)return;
   if(current&&e&&e.type==='pointerup'){ current.pts.push(posOf(e)); }   // 離した位置も線に加える（速書きで点だけにならない）
   drawId=null; drawing=false; current=null; redraw(); }
 canvas.addEventListener('pointerup',endStroke); canvas.addEventListener('pointercancel',endStroke);
@@ -963,7 +996,8 @@ const NOTES_DEFAULT={
   2:'変動・固定・フラット35の違い。今は変動が低いが「金利上昇リスクを誰が持つか」が違う。実行金利＝店頭金利−優遇幅の仕組みを図で説明。',
   3:'変動の3ルール（半年見直し／5年ルール／125％ルール）。返済額は急に増えないが、利息は消えない＝未払利息に注意。ルールを採用しないネット銀行もある。',
   4:'金利推移グラフ。歴史的に今は低水準。ただし2024年マイナス金利解除後は上昇傾向。「過去」ではなく「これから」を見て選ぶ。',
-  5:'パート1でまず頭金・繰上げの「効果」（確実に利息が減る）を示す→納得感。パート2で「運用してから繰上げ」を提示。運用益が繰上げの利息節約を上回れば運用継続が有利。低金利＋控除中は特に。最後に運用リスク・生活防衛資金を必ず補足。'
+  5:'通常・頭金・繰上げの3シナリオを比較。頭金・繰上げは確実に利息が減るが、低金利＋控除中は運用に回す選択肢も。',
+  6:'【中心】「守り(保険)と増やし(運用)の見直しは“今がベスト”」を伝える。画面の①②③を指しながら→①土台が決まる今＝住宅ローンで30年の家計の土台がまさに今決まる ②情報がそろう今＝ローンで収支・将来を整理したばかり、二度手間なし ③早く動ける今＝増やしは複利・守りは若いほど安い・家を買う気持ちが高い今。【団信の穴】団信は亡くなったらは守るが、働けない/収入減は守れない→家は残っても生活が…。【立場の開示＋名刺】今日はHousing FPとして中立に整理。ここから一歩踏み込むので正式な立場を→(名刺)“守り”を扱える代理店＋資産運用アドバイザー(IFA)の登録。一社の販売員ではなく、たくさんの会社から味方として比較するため複数の立場。【次回】あなただけの“家計の設計図”を無料・見える化・見てから決めてOK。皆さん「早く知れてよかった」と。【クロージング】来週か再来週、30分だけお時間を。'
 };
 let presOpen=false, timerStart=null, timerInt=null;
 function fmtTime(ms){const s=Math.max(0,Math.floor(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
